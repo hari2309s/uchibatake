@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.env*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+playwright-report
+test-results
+
+# Design material and prompts — kept locally, not in the repo
+*_PROMPT.md
+*.zip
+design_export/

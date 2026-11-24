@@ -1,0 +1,36 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# ── Supply chain ──────────────────────────────────────────────────────────────
+# Don't install a version until it has been public for a day: most malicious
+# releases are caught and pulled within hours.
+minimumReleaseAge: 1440
+# Refuse a version published with weaker trust (no provenance / trusted
+# publisher) than earlier versions of the same package had.
+trustPolicy: no-downgrade
+# Reviewed exceptions — exact versions only. undici-types 6.x is a maintenance
+# line published by its long-standing maintainer (matteo.collina) without
+# provenance; provenance began on the newer 7.x line, so pnpm's date-based
+# check reads a later 6.x release as a downgrade. Types only (no code); comes
+# in via @types/node.
+# eslint-import-resolver-typescript 3.10.1 is the same case: a 3.x maintenance
+# release by its usual maintainer (jounqin) the same day as provenance-signed
+# 4.3.4; a lint-time dependency of eslint-config-next.
+trustPolicyExclude:
+  - undici-types@6.21.0
+  - eslint-import-resolver-typescript@3.10.1
+# Dependencies may not run install scripts, except these (esbuild fetches its
+# platform binary). Anything new that asks to is reported, not run.
+onlyBuiltDependencies:
+  - esbuild
+strictDepBuilds: true
+
+overrides:
+  # GHSA-g3hv-75wg-m249 (moderate, ReDoS) — only reached via eslint-config-next's
+  # TypeScript parser, a dev tool. Remove once @typescript-eslint ships >= 11.0.1.
+  "@typescript-eslint/typescript-estree>minimatch": "^11.0.1"
+# Native build steps Next pulls in; not needed for dev. Re-approve deliberately if ever required.
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver

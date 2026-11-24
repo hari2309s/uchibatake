@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+/*
+ * Washi & Sumi tokens. Values come from the design files (Revised, MVP Flows,
+ * Spaces - Climates): every light colour has the dark counterpart used in the
+ * "· dark" frames. Theme: `.dark` / `.light` on <html> (or any subtree, as in
+ * /dev/kit); with neither, the system preference decides.
+ */
+:root,
+.light {
+  --washi: #f4f0e6; /* page */
+  --card: #faf7f0;
+  --ink: #1f1c19; /* sumi */
+  --ink-body: #3d3832; /* long-form body text */
+  --ink-soft: #5a544c; /* usuzumi: secondary text */
+  --ink-faint: #6f685e; /* unavailable options */
+  --rule: #d9d2c3;
+  --rule-strong: #cfc7b7; /* chip outlines, sheet handle */
+  --rule-dash: #9a9286; /* dashed "add a photo" boxes */
+  --wash: #e6e0d3; /* initial avatars, brush placeholders */
+  --hatch-a: #ece6d9;
+  --hatch-b: #e4ddce;
+  --shu: #b83a26; /* vermilion: seals and one primary action only */
+  --on-ink: #f4f0e6; /* text on sumi or vermilion */
+  --scrim: rgba(31, 28, 25, 0.38);
+  --bleed: rgba(184, 58, 38, 0.35);
+  color-scheme: light;
+}
+
+.dark {
+  --washi: #161412;
+  --card: #1e1b18;
+  --ink: #eae4d6;
+  --ink-body: #ccc4b6;
+  --ink-soft: #a69e91;
+  --ink-faint: #a69e91;
+  --rule: #36312b;
+  --rule-strong: #4a443c;
+  --rule-dash: #5a544c;
+  --wash: #2b2723;
+  --hatch-a: #2a2622;
+  --hatch-b: #25211d;
+  --shu: #e2694f;
+  --on-ink: #161412;
+  --scrim: rgba(0, 0, 0, 0.55);
+  --bleed: rgba(226, 105, 79, 0.35);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --washi: #161412;
+    --card: #1e1b18;
+    --ink: #eae4d6;
+    --ink-body: #ccc4b6;
+    --ink-soft: #a69e91;
+    --ink-faint: #a69e91;
+    --rule: #36312b;
+    --rule-strong: #4a443c;
+    --rule-dash: #5a544c;
+    --wash: #2b2723;
+    --hatch-a: #2a2622;
+    --hatch-b: #25211d;
+    --shu: #e2694f;
+    --on-ink: #161412;
+    --scrim: rgba(0, 0, 0, 0.55);
+    --bleed: rgba(226, 105, 79, 0.35);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-washi: var(--washi);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-body: var(--ink-body);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-rule-dash: var(--rule-dash);
+  --color-wash: var(--wash);
+  --color-shu: var(--shu);
+  --color-on-ink: var(--on-ink);
+  --color-scrim: var(--scrim);
+  --font-mincho: var(--font-shippori), "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-gothic: var(--font-zen-kaku), "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --font-sans: var(--font-gothic);
+  --font-serif: var(--font-mincho);
+}
+
+/* Washi grain: the same SVG noise as the design frames, in both themes. */
+.washi {
+  background-color: var(--washi);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27240%27 height=%27240%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.85%27 numOctaves=%273%27 stitchTiles=%27stitch%27/%3E%3CfeColorMatrix values=%270 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .1 0%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url%28%23n%29%27/%3E%3C/svg%3E");
+  color: var(--ink);
+}
+
+/* clip (not hidden) so no scroll container is created and sticky nav keeps working. */
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+body {
+  font-family: var(--font-gothic);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Visible focus in both themes: a sumi (or ink) ring with a washi gap. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.vertical {
+  writing-mode: vertical-rl;
+}
+
+/* Photo placeholder hatch (used until a family photo exists). */
+.hatch {
+  background: repeating-linear-gradient(135deg, var(--hatch-a) 0 8px, var(--hatch-b) 8px 16px);
+}
+
+/* ── Motion (timings from the design files) ─────────────────────────────── */
+
+@keyframes inkpress {
+  0% { opacity: 0; transform: scale(1.7) rotate(-14deg); filter: blur(3px); }
+  55% { opacity: 1; transform: scale(0.92) rotate(-5deg); filter: blur(0); }
+  78% { transform: scale(1.04) rotate(-6deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-6deg); }
+}
+@keyframes inkbleed {
+  0% { box-shadow: 0 0 0 0 var(--bleed); }
+  100% { box-shadow: 0 0 0 16px transparent; }
+}
+@keyframes inkdrop {
+  0% { transform: scale(0.25); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes brushdraw {
+  0% { stroke-dashoffset: 560; }
+  60% { stroke-dashoffset: 90; }
+  100% { stroke-dashoffset: 90; }
+}
+@keyframes brushfade {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes sheetup {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.ink-press {
+  animation: inkpress 560ms cubic-bezier(0.2, 0.8, 0.3, 1) both, inkbleed 800ms 280ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}
