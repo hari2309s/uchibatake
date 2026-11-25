@@ -4,9 +4,8 @@ import Link from "next/link";
 import { TodayList } from "@/components/app/today-list";
 import { ButtonLink } from "@/components/ui/button";
 import { Enso } from "@/components/ui/enso";
-import { Avatar } from "@/components/ui/avatar";
 import { NoticeRow } from "@/components/ui/notice";
-import { useHousehold, useMembers, usePlantings, useSettings, useSpaces, useTasksForDay } from "@/lib/data/hooks";
+import { useHousehold, usePlantings, useSettings, useSpaces, useTasksForDay } from "@/lib/data/hooks";
 import { useData } from "@/lib/data/provider";
 import { useLiveQuery } from "dexie-react-hooks";
 import { live } from "@/lib/data/repo";
@@ -14,7 +13,7 @@ import { growthStatus, readyWords } from "@/lib/growth";
 import { isIndoors, spaceLine } from "@/lib/space-words";
 import { useToday } from "@/lib/use-today";
 import { capitalise, numberWord } from "@/lib/words";
-import { longDate, plantName, PlantCell, Section, SeasonHeader } from "./parts";
+import { plantName, PlantCell, Section, SeasonHeader } from "./parts";
 
 /** "Two things to do before dark", "One thing…", "All done". */
 export function thingsLeft(n: number): string {
@@ -28,14 +27,12 @@ export function Home() {
   const today = useToday();
   const household = useHousehold();
   const settings = useSettings();
-  const members = useMembers();
   const spaces = useSpaces();
   const plantings = usePlantings();
   const tasks = useTasksForDay(today ?? "");
   const notice = useLiveQuery(async () => (today ? (await live(db.notices)).find((n) => n.for_date === today) : undefined), [db, today]);
   if (!today || !household || !plantings) return null;
 
-  const me = members?.find((m) => m.role === "owner");
   const growing = (plantings ?? []).filter((p) => p.status === "growing");
   const open = tasks?.filter((t) => !t.done_at).length ?? 0;
   const ready = growing
@@ -46,15 +43,6 @@ export function Home() {
 
   return (
     <div className="pb-6">
-      <div className="flex items-center justify-between pl-8 pr-7 pt-3">
-        <span className="text-[16px] text-ink-soft">{[longDate(today), household.place].filter(Boolean).join(" · ")}</span>
-        {me ? (
-          <Link href="/profile" aria-label="Profile" className="rounded-full">
-            <Avatar mark={me.mark} size={44} quiet />
-          </Link>
-        ) : null}
-      </div>
-
       <SeasonHeader household={household} settings={settings} today={today} />
 
       {notice ? (

@@ -9,6 +9,7 @@ import { BottomNav, Column } from "@/components/ui/shell";
 import { useHousehold } from "@/lib/data/hooks";
 import { DataProvider, useData, useSession } from "@/lib/data/provider";
 import { endSession, rememberedAccount, subscribeSession, type RememberedAccount } from "@/lib/data/session";
+import { AppHeader } from "./header";
 import { Redirect } from "./redirect";
 
 function useRemembered(): RememberedAccount | null {
@@ -68,6 +69,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
   return (
     <Column>
       {full ? null : <DemoStrip />}
+      {full ? null : <AppHeader />}
       <main className="flex flex-1 flex-col pb-11">
         {children}
       </main>
