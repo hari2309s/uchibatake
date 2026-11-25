@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 test("the demo household opens from nothing, with the designs' family and field", async ({ page }) => {
   await page.goto("/dev/data");
   await page.getByRole("button", { name: "Explore the demo" }).click();
-  await expect(page.getByRole("heading", { name: "Hari & Saskia's family" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sam & Rosie's family" })).toBeVisible();
   await expect(page.getByTestId("count-People")).toHaveText("6");
-  await expect(page.getByTestId("count-Spaces")).toHaveText("3");
-  await expect(page.getByTestId("count-Growing")).toHaveText("11");
+  await expect(page.getByTestId("count-Spaces")).toHaveText("6");
+  await expect(page.getByTestId("count-Growing")).toHaveText("22");
   await expect(page.getByText("Put the fleece by the balcony door")).toBeVisible();
 });
 

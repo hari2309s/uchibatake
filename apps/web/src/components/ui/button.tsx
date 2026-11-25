@@ -21,7 +21,7 @@ export function buttonClass(variant: ButtonVariant = "primary", size: ButtonSize
     quiet: "text-ink text-[17px] underline underline-offset-4 decoration-ink",
   }[variant];
   return cn(
-    "inline-flex w-full select-none items-center justify-center gap-3.5 rounded-[4px] px-4 text-center transition-opacity active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40",
+    "inline-flex w-full select-none items-center justify-center gap-3.5 rounded-[4px] px-4 text-center transition-[transform,opacity] duration-150 ease-out active:scale-[.98] active:opacity-90 disabled:cursor-not-allowed disabled:opacity-40",
     h,
     v,
     variant !== "quiet" && "font-medium",

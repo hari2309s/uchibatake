@@ -13,11 +13,20 @@ export function ensoDash(value: number, c: number, closed = false): number {
  * stroke 4.5, starts at −80°). Near the end a second, fainter stroke appears,
  * like a brush going round twice ("Ready to snip").
  */
-export function Enso({ value, size = 52, closed = false, label, className }: { value: number; size?: number; closed?: boolean; label?: string; className?: string }) {
+export function Enso({ value, size = 52, closed = false, label, className, draw = true }: { value: number; size?: number; closed?: boolean; label?: string; className?: string; draw?: boolean }) {
   const r = 20;
   const c = 2 * Math.PI * r;
   const dash = ensoDash(value, c, closed);
   const second = value >= 85 && !closed;
+  // One dash the length of the ring, pulled into view by the offset: a brush drawing the stroke.
+  const stroke = (len: number, delay: number) =>
+    ({
+      strokeDasharray: `${c} ${c}`,
+      strokeDashoffset: c - len,
+      "--c": c,
+      "--o": c - len,
+      animation: draw ? `ensodraw 900ms ${delay}ms cubic-bezier(.2,.8,.3,1) both` : undefined,
+    }) as React.CSSProperties;
   return (
     <svg
       width={size}
@@ -28,10 +37,8 @@ export function Enso({ value, size = 52, closed = false, label, className }: { v
       aria-hidden={label ? undefined : true}
       className={cn("block flex-none", className)}
     >
-      <circle cx="26" cy="26" r={r} fill="none" stroke="var(--ink)" strokeWidth="4.5" strokeLinecap="round" strokeDasharray={`${dash} 200`} transform="rotate(-80 26 26)" />
-      {second ? (
-        <circle cx="26.6" cy="25.4" r="19" fill="none" stroke="var(--ink)" strokeWidth="1.2" strokeLinecap="round" strokeDasharray={`${dash * 0.82} 200`} transform="rotate(-68 26 26)" opacity=".45" />
-      ) : null}
+      <circle cx="26" cy="26" r={r} fill="none" stroke="var(--ink)" strokeWidth="4.5" strokeLinecap="round" transform="rotate(-80 26 26)" style={stroke(dash, 0)} />
+      {second ? <circle cx="26.6" cy="25.4" r="19" fill="none" stroke="var(--ink)" strokeWidth="1.2" strokeLinecap="round" transform="rotate(-68 26 26)" opacity=".45" style={stroke(dash * 0.82, 260)} /> : null}
     </svg>
   );
 }

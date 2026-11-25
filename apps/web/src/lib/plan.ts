@@ -48,7 +48,7 @@ export const LIKES: Record<string, (c: Crop) => boolean> = {
 const liked = (c: Crop, likes: string[]) => likes.some((l) => LIKES[l]?.(c));
 
 /** How this crop could start in this space today, if it can. */
-function startsNow(crop: Crop, space: PlanSpace, md: string, climate: ClimateType, hemisphere: 1 | -1): PlanItem["how"] | null {
+export function startsNow(crop: Crop, space: PlanSpace, md: string, climate: ClimateType, hemisphere: 1 | -1): PlanItem["how"] | null {
   const w = windowsFor(crop, climate, hemisphere);
   const indoors = INDOORS.includes(space.type);
   if (indoors) {

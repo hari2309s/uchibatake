@@ -6,7 +6,7 @@ export type SealKind = "済" | "収" | "種" | "芽";
 export const SEAL_NAMES: Record<SealKind, string> = { 済: "Done", 収: "Harvest", 種: "Seeds", 芽: "First sprout" };
 
 /** Font size per seal size, as set in the frames. */
-const SEAL_FONT: Record<number, number> = { 28: 16, 30: 17, 34: 18, 36: 20, 44: 24, 48: 22, 88: 50 };
+const SEAL_FONT: Record<number, number> = { 24: 16, 28: 16, 30: 17, 34: 18, 36: 20, 44: 24, 48: 22, 88: 50 };
 
 /**
  * A vermilion seal. Sizes from the frames: 28 (reminder rows), 30 (task rows),

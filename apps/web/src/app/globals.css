@@ -154,11 +154,59 @@ body {
   to { transform: none; opacity: 1; }
 }
 
+/* Arriving content rises a few pixels out of the paper, one after another (--i). */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise 560ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* A brush stroke drawing itself: the ensō rings (dashoffset from --c to --o). */
+@keyframes ensodraw {
+  from { stroke-dashoffset: var(--c); }
+  to { stroke-dashoffset: var(--o); }
+}
+
+@keyframes scrimfade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+dialog[open]::backdrop {
+  animation: scrimfade 320ms ease-out both;
+}
+
+/* Route changes: the old page settles away, the new one rises in (React <ViewTransition>). */
+@keyframes vt-out {
+  to { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes vt-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+::view-transition-old(.washi-page) {
+  animation: vt-out 200ms ease-in both;
+}
+::view-transition-new(.washi-page) {
+  animation: vt-in 420ms 60ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+/* A plant's ensō glides from its row into the plant's page. */
+::view-transition-group(.enso-morph) {
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
 .ink-press {
   animation: inkpress 560ms cubic-bezier(0.2, 0.8, 0.3, 1) both, inkbleed 800ms 280ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
   *,
   *::before,
   *::after {

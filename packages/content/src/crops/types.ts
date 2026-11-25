@@ -64,6 +64,8 @@ export interface Crop {
   /** Smallest pot that suits it, in cm. */
   pot?: { depthCm?: number; widthCm?: number };
   start: { seed: Applies; plant: Applies; scraps: Applies };
+  /** Days from sowing to the first picking, the shortest the source gives. Unset when the source doesn't say. */
+  daysToFirstPick?: number;
   /** The verb for starting it, when "Sow" is wrong ("Plant the cloves of" → "Plant garlic"). */
   sowVerb?: string;
   windows: Partial<Record<ClimateType, ClimateWindows>>;

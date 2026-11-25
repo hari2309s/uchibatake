@@ -20,13 +20,13 @@ test("story year: the latest 23 November that has come", () => {
   assert.equal(storyYear(new Date(2027, 6, 16)), 2026);
 });
 
-test("demo: one household, six people with the kids' marks, three spaces", async () => {
+test("demo: one household, six people with the kids' marks, six spaces", async () => {
   const db = await demoDb();
   assert.equal((await live(db.households)).length, 1);
   const members = await live(db.members);
-  assert.deepEqual(members.sort((a, b) => a.sort - b.sort).map((m) => m.name), ["Hari", "Saskia", "Kamala", "Mira", "Sem", "Noor"]);
+  assert.deepEqual(members.sort((a, b) => a.sort - b.sort).map((m) => m.name), ["Sam", "Rosie", "Kamala", "Mira", "Jules", "Noor"]);
   assert.deepEqual(members.filter((m) => m.kind === "child").map((m) => m.mark.kind).sort(), ["bean", "leaf", "sprout"]);
-  assert.deepEqual((await live(db.spaces)).map((s) => s.name).sort(), ["Back balcony", "Back garden", "Kitchen windowsill"]);
+  assert.deepEqual((await live(db.spaces)).map((s) => s.name).sort(), ["Back balcony", "Back garden", "Hallway rack", "Kitchen light shelf", "Kitchen windowsill", "Lean-to greenhouse"]);
 });
 
 test("demo: what's growing in each space matches 02 Home", async () => {
@@ -62,10 +62,10 @@ test("demo: every reference points at a real row and a real crop", async () => {
   for (const r of await live(db.households)) assert.equal(r.id, DEMO_HOUSEHOLD);
 });
 
-test("demo: about forty harvests, and 14 strawberry pickings of about 140 berries (M12)", async () => {
+test("demo: forty-odd harvests, and 14 strawberry pickings of about 140 berries (M12)", async () => {
   const db = await demoDb();
   const harvests = await db.harvests.toArray();
-  assert.ok(harvests.length >= 38 && harvests.length <= 45, `${harvests.length} harvests`);
+  assert.ok(harvests.length >= 40 && harvests.length <= 50, `${harvests.length} harvests`);
   const straw = harvestTotals(harvests).find((t) => t.cropId === "strawberries")!;
   assert.equal(straw.pickings, 14);
   assert.ok(straw.count >= 130 && straw.count <= 150, `${straw.count} berries`);
@@ -94,7 +94,7 @@ test("demo: today's four small things, one already done", async () => {
 
 test("repo: creating stamps bookkeeping and marks the row dirty", async () => {
   const db = await demoDb();
-  const h = await logHarvest(db, { planting_id: P.kale, crop_id: "kale", amount: 400, unit: "g", measure: "a big colander", picked_by: [M.saskia, M.mira], picked_on: "2026-11-23", note: null, photo_ids: [] });
+  const h = await logHarvest(db, { planting_id: P.kale, crop_id: "kale", amount: 400, unit: "g", measure: "a big colander", picked_by: [M.rosie, M.mira], picked_on: "2026-11-23", note: null, photo_ids: [] });
   assert.equal(h.household_id, DEMO_HOUSEHOLD);
   assert.equal(h.dirty, 1);
   assert.equal(h.deleted_at, null);
@@ -123,9 +123,9 @@ test("repo: soft delete hides the row from reads and keeps it for sync", async (
 
 test("tasks: done, undo, tomorrow; rule jobs are never added twice", async () => {
   const db = await demoDb();
-  await completeTask(db, "demo-task-water-sill", M.sem);
+  await completeTask(db, "demo-task-water-sill", M.jules);
   let t = (await db.tasks.get("demo-task-water-sill"))!;
-  assert.ok(t.done_at && t.done_by === M.sem);
+  assert.ok(t.done_at && t.done_by === M.jules);
   await reopenTask(db, t.id);
   t = (await db.tasks.get(t.id))!;
   assert.equal(t.done_at, null);
@@ -171,7 +171,7 @@ test("tasks: a carried-over job ticked today shows today with its 済, not on it
   const db = await demoDb();
   // Due yesterday, still open, carried to today; then done.
   await db.tasks.update("demo-task-fleece", { due_on: "2026-11-22" });
-  await completeTask(db, "demo-task-fleece", M.hari);
+  await completeTask(db, "demo-task-fleece", M.sam);
   const all = await db.tasks.toArray();
   const doneDay = new Date((await db.tasks.get("demo-task-fleece"))!.done_at!);
   const day = `${doneDay.getFullYear()}-${String(doneDay.getMonth() + 1).padStart(2, "0")}-${String(doneDay.getDate()).padStart(2, "0")}`;
@@ -193,7 +193,7 @@ test("tasks: a rule job the family deleted stays deleted", async () => {
 test("notices: two quick ticks both land", async () => {
   const db = await demoDb();
   const n = await create(db.notices, { kind: "frost", for_date: "2026-11-23", low: -2, high: 5, remind_at: null, checklist: [{ id: "a", text: "Fleece", done_at: null, done_by: null }, { id: "b", text: "Basil", done_at: null, done_by: null }] }, DEMO_HOUSEHOLD);
-  await Promise.all([toggleNoticeItem(db, n.id, "a", M.hari), toggleNoticeItem(db, n.id, "b", M.mira)]);
+  await Promise.all([toggleNoticeItem(db, n.id, "a", M.sam), toggleNoticeItem(db, n.id, "b", M.mira)]);
   const after = (await db.notices.get(n.id))!;
   assert.ok(after.checklist.every((c) => c.done_at), "both ticked");
 });

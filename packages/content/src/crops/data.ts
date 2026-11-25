@@ -59,6 +59,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "leeks",
+    daysToFirstPick: 60, // RHS: baby leeks in a couple of months
     name: "Leeks",
     aka: ["leek", "prei"],
     kind: "vegetable",
@@ -210,6 +211,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "spinach",
+    daysToFirstPick: 30, // RHS: baby leaves about a month after sowing
     name: "Spinach",
     aka: ["spinazie"],
     kind: "vegetable",
@@ -348,6 +350,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "coriander",
+    daysToFirstPick: 70, // RHS: first leaves in as little as 10 weeks
     name: "Coriander",
     aka: ["cilantro", "koriander", "dhania"],
     kind: "herb",
@@ -374,6 +377,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "garden-pea",
+    daysToFirstPick: 84, // RHS: earlies about 12–14 weeks from sowing
     name: "Garden pea",
     aka: ["peas", "pea", "doperwten"],
     kind: "vegetable",
@@ -407,6 +411,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "sugar-snap",
+    daysToFirstPick: 84, // RHS peas page: earlies about 12–14 weeks
     name: "Sugar snap",
     aka: ["mangetout", "snap peas", "peultjes"],
     kind: "vegetable",
@@ -430,6 +435,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "pea-shoots",
+    daysToFirstPick: 21, // RHS: pea shoots 3–4 weeks after sowing
     name: "Pea shoots",
     aka: ["pea tips", "dou miao"],
     kind: "vegetable",
@@ -500,6 +506,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "lettuce",
+    daysToFirstPick: 28, // RHS: loose-leaf in about four to six weeks
     name: "Lettuce",
     aka: ["little gem", "butter lettuce", "winter lettuce", "sla"],
     kind: "vegetable",
@@ -549,6 +556,7 @@ export const CROPS: Crop[] = [
   },
   {
     id: "radish",
+    daysToFirstPick: 28, // RHS: salad radishes ready in about four weeks
     name: "Radish",
     aka: ["radishes", "radijs"],
     kind: "vegetable",

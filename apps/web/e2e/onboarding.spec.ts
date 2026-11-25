@@ -55,10 +55,13 @@ test("onboarding as a guest → first plan → Home with the plan's jobs", async
   await expect(page.getByText(/before mid-December/)).toBeVisible();
   await page.getByRole("button", { name: "Begin my season" }).click();
 
-  await expect(page.getByRole("heading", { name: "Saskia's family" })).toBeVisible();
+  // Home leads with Amsterdam's season, and the plan's jobs are there.
+  await expect(page.getByRole("heading", { name: "Late autumn · first frosts" })).toBeVisible();
   await expect(page.getByText("Plant garlic")).toBeVisible();
   // It's on the device: a reload comes straight back to Home.
   await page.reload();
+  await expect(page.getByText("Plant garlic")).toBeVisible();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Profile" }).click();
   await expect(page.getByRole("heading", { name: "Saskia's family" })).toBeVisible();
 });
 
@@ -79,7 +82,7 @@ test("explore the demo from the front door", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Explore without an account" }).click();
   await page.getByRole("button", { name: "Look around a family's field" }).click();
-  await expect(page.getByRole("heading", { name: "Hari & Saskia's family" })).toBeVisible();
+  await expect(page.getByText("Exploring Sam & Rosie's field")).toBeVisible();
   await expect(page.getByText("Put the fleece by the balcony door")).toBeVisible();
 });
 
@@ -116,6 +119,7 @@ test("email link: the address goes to Supabase, then M01 shows it", async ({ pag
 });
 
 test("a returning guest goes straight back to their field, not through onboarding again", async ({ page }) => {
+  await onTheDesignsDay(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Explore without an account" }).click();
   await page.getByRole("button", { name: "Start my own field" }).click();
@@ -125,12 +129,13 @@ test("a returning guest goes straight back to their field, not through onboardin
     await page.getByRole("button", { name: "Skip" }).click();
   }
   await page.getByRole("button", { name: "Begin my season" }).click();
-  await expect(page.getByRole("heading", { name: "Our field" })).toBeVisible();
+  // No place given: Home says less and leads with the microseason.
+  await expect(page.getByRole("heading", { name: "Rainbows hide" })).toBeVisible();
   // Leave (the session ends; the field stays on the device), then come back.
   await page.evaluate(() => localStorage.removeItem("uchibatake-session"));
   await page.goto("/");
   await page.getByRole("button", { name: "Explore without an account" }).click();
   await page.getByRole("button", { name: "Start my own field" }).click();
-  await expect(page.getByRole("heading", { name: "Our field" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Rainbows hide" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Where will you grow?" })).toHaveCount(0);
 });
