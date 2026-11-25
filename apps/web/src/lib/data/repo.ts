@@ -119,21 +119,30 @@ export async function addPlanting(db: FieldDB, planting: New<Planting>) {
   return create(db.plantings, planting, await householdId(db));
 }
 
+/** Open jobs that were only about this plant go; shared ones just stop naming it. */
+async function clearOpenJobs(db: FieldDB, id: string): Promise<void> {
+  for (const t of await db.tasks.toArray()) {
+    if (t.deleted_at || t.done_at || !t.planting_ids.includes(id)) continue;
+    if (t.planting_ids.length === 1) await remove(db.tasks, t.id);
+    else await update(db.tasks, t.id, { planting_ids: t.planting_ids.filter((x) => x !== id) });
+  }
+}
+
 /** Removes a plant, and any open jobs that were only about it. Journal pages stay. */
 export async function removePlanting(db: FieldDB, id: string): Promise<void> {
   await db.transaction("rw", db.plantings, db.tasks, async () => {
     await remove(db.plantings, id);
-    for (const t of await db.tasks.toArray()) {
-      if (t.deleted_at || t.done_at || !t.planting_ids.includes(id)) continue;
-      if (t.planting_ids.length === 1) await remove(db.tasks, t.id);
-      else await update(db.tasks, t.id, { planting_ids: t.planting_ids.filter((x) => x !== id) });
-    }
+    await clearOpenJobs(db, id);
   });
 }
 
-/** Ends a planting (season over or lost) without deleting its story. */
-export function endPlanting(db: FieldDB, id: string, on: string, lost?: Planting["lost_cause"]) {
-  return update(db.plantings, id, { status: lost !== undefined ? "lost" : "ended", ended_on: on, lost_cause: lost ?? null });
+/** Ends a planting (season over, or lost) without deleting its story. Its open jobs go. */
+export async function endPlanting(db: FieldDB, id: string, on: string, lost?: Planting["lost_cause"]) {
+  return db.transaction("rw", db.plantings, db.tasks, async () => {
+    const p = await update(db.plantings, id, { status: lost !== undefined ? "lost" : "ended", ended_on: on, lost_cause: lost ?? null });
+    await clearOpenJobs(db, id);
+    return p;
+  });
 }
 
 export async function logHarvest(db: FieldDB, harvest: New<Harvest>) {

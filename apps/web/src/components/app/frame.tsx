@@ -65,7 +65,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
   useOnboardingGuard(household ? !!household.onboarded_at : undefined);
   if (!household?.onboarded_at) return null;
   // Full-screen notices (13b) have no nav.
-  const full = path.startsWith("/notice/");
+  const full = path.startsWith("/notice/") || path.startsWith("/kid/");
   return (
     <Column>
       {full ? null : <DemoStrip />}

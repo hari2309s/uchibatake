@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
 import { Avatar, Mark } from "@/components/ui/avatar";
+import { GiveJobSheet } from "./sheets";
 import { Seal } from "@/components/ui/seal";
 import { useHarvests, useMembers } from "@/lib/data/hooks";
 import { useData } from "@/lib/data/provider";
@@ -23,6 +26,7 @@ function memberLine(m: Member): string {
 /** 10 Family: who's in it, this week's small jobs, and who helped, day by day. */
 export function Family() {
   const { db } = useData();
+  const [giving, setGiving] = useState(false);
   const members = useMembers();
   const harvests = useHarvests();
   const today = useToday();
@@ -52,13 +56,28 @@ export function Family() {
         <p className="text-[16px] text-ink-soft">{capitalise(numberWord(members.length))} {members.length === 1 ? "person" : "people"}, one small field.</p>
       </div>
       <ul className="flex flex-col px-8 pt-[18px]">
-        {members.map((m, i) => (
-          <li key={m.id} className="rise flex min-h-[62px] items-center gap-3.5 border-t border-rule last:border-b" style={{ "--i": i + 1 } as React.CSSProperties}>
-            <Avatar mark={m.mark} size={44} selected={m.role === "owner"} quiet={m.role === "editor"} />
-            <span className="flex-1 text-[17px]">{m.name}</span>
-            <span className="text-right text-[16px] text-ink-soft">{memberLine(m)}</span>
-          </li>
-        ))}
+        {members.map((m, i) => {
+          const row = (
+            <>
+              <Avatar mark={m.mark} size={44} selected={m.role === "owner"} quiet={m.role === "editor"} />
+              <span className="flex-1 text-[17px]">{m.name}</span>
+              <span className="text-right text-[16px] text-ink-soft">{memberLine(m)}</span>
+              {m.kind === "child" ? <span aria-hidden className="text-[20px]">›</span> : null}
+            </>
+          );
+          return (
+            <li key={m.id} className="rise border-t border-rule last:border-b" style={{ "--i": i + 1 } as React.CSSProperties}>
+              {/* Children have their own page of jobs, with a box to stamp (M14). */}
+              {m.kind === "child" ? (
+                <Link href={`/kid/${m.id}`} className="tap flex min-h-[62px] items-center gap-3.5" aria-label={`${m.name}'s jobs`}>
+                  {row}
+                </Link>
+              ) : (
+                <div className="flex min-h-[62px] items-center gap-3.5">{row}</div>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       {jobs.length ? (
@@ -81,6 +100,16 @@ export function Family() {
           </ul>
         </Section>
       ) : null}
+
+      <div className="rise px-8 pt-4" style={{ "--i": 5 } as React.CSSProperties}>
+        <button type="button" onClick={() => setGiving(true)} className="tap flex min-h-16 w-full items-center justify-center gap-2.5 border-[1.5px] border-dashed border-rule-dash text-[17px] font-medium">
+          <span aria-hidden className="text-[22px]">
+            +
+          </span>
+          Give a small job
+        </button>
+      </div>
+      <GiveJobSheet open={giving} onClose={() => setGiving(false)} />
 
       <Section title="Who helped" aside="This week, day by day." i={5} className="pt-[34px]">
         <div className="grid grid-cols-7 gap-1 pt-4" role="list">

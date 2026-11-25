@@ -33,12 +33,27 @@ export function Journal() {
           <h1 className="font-mincho text-[34px] font-normal">Journal</h1>
           <p className="text-[16px] text-ink-soft">Our family&apos;s field, written down.</p>
         </div>
-        <Link href="/journal/seeds" className="mt-1 flex min-h-11 items-center text-[16px] underline underline-offset-4">
-          Seed box
+        <Link href="/journal/new" aria-label="Write a new page" className="tap pop flex h-12 w-12 flex-none items-center justify-center rounded-full bg-ink text-[22px] text-on-ink">
+          ✎
         </Link>
       </div>
 
-      {entries.length === 0 ? <p className="rise px-8 pt-10 text-[17px] text-ink-body">The first page is waiting for something small.</p> : null}
+      <div className="rise flex gap-6 px-8 pt-4" style={{ "--i": 1 } as React.CSSProperties}>
+        <Link href="/journal/seeds" className="tap flex min-h-11 items-center text-[16px] underline underline-offset-4">
+          Seed box
+        </Link>
+        <Link href="/journal/year" className="tap flex min-h-11 items-center text-[16px] underline underline-offset-4">
+          Our year in the field
+        </Link>
+      </div>
+      {entries.length === 0 ? (
+        <div className="rise flex flex-col items-start gap-4 px-8 pt-10">
+          <p className="text-[17px] text-ink-body">The first page is waiting for something small.</p>
+          <Link href="/journal/new" className="tap text-[17px] underline underline-offset-4">
+            Write the first note
+          </Link>
+        </div>
+      ) : null}
 
       {months.map((month, mi) => (
         <section key={month} aria-label={month} className="rise" style={{ "--i": mi + 1 } as React.CSSProperties}>

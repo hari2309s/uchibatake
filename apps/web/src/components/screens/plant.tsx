@@ -121,6 +121,16 @@ export function PlantDetail({ id }: { id: string }) {
           </Button>
         </div>
       ) : null}
+      {p.status === "growing" ? (
+        <div className="rise flex justify-center gap-6 px-8 pt-6" style={{ "--i": 5 } as React.CSSProperties}>
+          <Link href={`/plants/${p.id}/end`} className="tap flex min-h-11 items-center text-[16px] text-ink-soft underline underline-offset-4">
+            The season&apos;s over
+          </Link>
+          <Link href={`/plants/${p.id}/lost`} className="tap flex min-h-11 items-center text-[16px] text-ink-soft underline underline-offset-4">
+            It didn&apos;t make it
+          </Link>
+        </div>
+      ) : null}
       <HarvestSheet planting={p} spaceName={space?.name ?? ""} open={harvesting} onClose={() => setHarvesting(false)} />
     </div>
   );

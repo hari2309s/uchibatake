@@ -1,7 +1,9 @@
 "use client";
 
 import { cropById, inWindows, windowsFor, type ClimateType } from "@uchibatake/content";
+import { useState } from "react";
 import { BackBar } from "@/components/ui/bars";
+import { AddSeedSheet } from "./sheets";
 import { Seal } from "@/components/ui/seal";
 import { useHousehold, useMembers, useSeeds } from "@/lib/data/hooks";
 import type { Seed } from "@/lib/data/types";
@@ -34,6 +36,7 @@ function Envelope({ seed, line, saved, i }: { seed: Seed; line: string; saved: s
 /** 11 Seed box: paper envelopes, kept cool and dark. */
 export function SeedBox() {
   const seeds = useSeeds();
+  const [adding, setAdding] = useState(false);
   const climate = useHousehold()?.climate ?? null;
   const members = useMembers();
   const today = useToday();
@@ -92,6 +95,15 @@ export function SeedBox() {
           </ul>
         </section>
       ) : null}
+      <div className="rise px-8 pt-6" style={{ "--i": 8 } as React.CSSProperties}>
+        <button type="button" onClick={() => setAdding(true)} className="tap flex min-h-16 w-full items-center justify-center gap-2.5 border-[1.5px] border-dashed border-rule-dash text-[17px] font-medium">
+          <span aria-hidden className="text-[22px]">
+            +
+          </span>
+          {seeds.length ? "Add seeds" : "Add a seed packet"}
+        </button>
+      </div>
+      <AddSeedSheet open={adding} onClose={() => setAdding(false)} />
     </div>
   );
 }

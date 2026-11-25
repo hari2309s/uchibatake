@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet } from "@/components/ui/sheet";
+import { remove } from "@/lib/data/repo";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Avatar } from "@/components/ui/avatar";
 import { BackBar } from "@/components/ui/bars";
@@ -12,10 +17,12 @@ import { longDate, plantName } from "./parts";
 /** M15 Journal entry: the full page, its plants and place, and who wrote it. */
 export function JournalEntryView({ id }: { id: string }) {
   const { db } = useData();
+  const router = useRouter();
   const entry = useLiveQuery(async () => (await db.journal_entries.get(id)) ?? null, [db, id]);
   const members = useMembers();
   const plantings = usePlantings();
   const spaces = useSpaces();
+  const [asking, setAsking] = useState(false);
   if (entry === null || entry?.deleted_at) return <BackBar href="/journal" label="Journal" />;
   if (!entry) return null;
   const writer = members?.find((m) => m.id === entry.writer_id);
@@ -25,7 +32,15 @@ export function JournalEntryView({ id }: { id: string }) {
   ];
   return (
     <div className="pb-10">
-      <BackBar href="/journal" label="Journal" />
+      <BackBar
+        href="/journal"
+        label="Journal"
+        right={
+          <Link href={`/journal/${entry.id}/edit`} className="tap flex min-h-11 items-center px-2 text-[17px]">
+            Edit
+          </Link>
+        }
+      />
       <div className="rise flex flex-col gap-2 px-8 pt-3">
         <span className="text-[16px] text-ink-soft">{longDate(entry.written_on)}</span>
         <div className="flex items-start justify-between gap-4">
@@ -51,6 +66,28 @@ export function JournalEntryView({ id }: { id: string }) {
           <span className="text-[16px] text-ink-soft">Written by {writer.name}</span>
         </div>
       ) : null}
+      <div className="flex justify-center pt-10">
+        <button type="button" className="tap min-h-11 px-4 text-[16px] text-ink-soft" onClick={() => setAsking(true)}>
+          Delete
+        </button>
+      </div>
+      <Sheet open={asking} onClose={() => setAsking(false)} title="Delete this page?">
+        <div className="flex flex-col gap-4 px-8 pb-[34px] pt-3">
+          <p className="text-[17px] leading-[1.6] text-ink-body">It goes from the journal and the plant&apos;s story. The harvests stay.</p>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await remove(db.journal_entries, entry.id);
+              router.replace("/journal");
+            }}
+          >
+            Delete it
+          </Button>
+          <button type="button" className="min-h-11 text-[16px] text-ink-soft" onClick={() => setAsking(false)}>
+            Keep it
+          </button>
+        </div>
+      </Sheet>
     </div>
   );
 }
