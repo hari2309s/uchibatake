@@ -34,6 +34,10 @@ export function growthStatus(p: Planting, today: string, opts: { indoors?: boole
   const { indoors = false, climate = "temperate", hemisphere = 1 } = opts;
   if (p.status === "ended") return { progress: 100, closed: true, label: "Done for the season", short: "Done", readyInDays: null };
   if (p.status === "lost") return { progress: 96, closed: false, label: "Didn't make it", short: "Lost", readyInDays: null };
+  if (p.status === "planned") {
+    const label = p.started_on > today ? `Planned for ${dateWords(p.started_on.slice(5))}` : "Planned";
+    return { progress: 2, closed: false, label, short: "Planned", readyInDays: null };
+  }
 
   const age = Math.max(0, daysBetween(p.started_on, today));
   const young = age < 14 && p.start_method !== "existing";

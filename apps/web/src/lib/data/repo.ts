@@ -62,9 +62,21 @@ export async function householdId(db: FieldDB): Promise<string> {
 
 // ── Tasks ───────────────────────────────────────────────────────────────────
 
-/** Done: the 済 seal. Remembers who did it. */
-export function completeTask(db: FieldDB, id: string, by: string | null) {
-  return update(db.tasks, id, { done_at: Date.now(), done_by: by, skipped_at: null });
+/**
+ * Done: the 済 seal. Remembers who did it. Ticking a plant's start job
+ * ("Sow peas") makes that planned plant a growing one, started today.
+ */
+export async function completeTask(db: FieldDB, id: string, by: string | null) {
+  const t = await update(db.tasks, id, { done_at: Date.now(), done_by: by, skipped_at: null });
+  if (t?.rule_key?.startsWith("start:")) {
+    const p = await db.plantings.get(t.rule_key.slice("start:".length));
+    if (p && !p.deleted_at && p.status === "planned") {
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      await update(db.plantings, p.id, { status: "growing", started_on: today });
+    }
+  }
+  return t;
 }
 
 /** Undo a done or a skip. */
@@ -105,6 +117,18 @@ export async function addSpace(db: FieldDB, space: New<Space>) {
 
 export async function addPlanting(db: FieldDB, planting: New<Planting>) {
   return create(db.plantings, planting, await householdId(db));
+}
+
+/** Removes a plant, and any open jobs that were only about it. Journal pages stay. */
+export async function removePlanting(db: FieldDB, id: string): Promise<void> {
+  await db.transaction("rw", db.plantings, db.tasks, async () => {
+    await remove(db.plantings, id);
+    for (const t of await db.tasks.toArray()) {
+      if (t.deleted_at || t.done_at || !t.planting_ids.includes(id)) continue;
+      if (t.planting_ids.length === 1) await remove(db.tasks, t.id);
+      else await update(db.tasks, t.id, { planting_ids: t.planting_ids.filter((x) => x !== id) });
+    }
+  });
 }
 
 /** Ends a planting (season over or lost) without deleting its story. */

@@ -97,10 +97,12 @@ export function longDate(iso: string): string {
   return `${date.toLocaleDateString("en-GB", { weekday: "long" })}, ${date.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}`;
 }
 
-/** "23 Nov". */
+const SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "23 Nov", "10 Sep" (three letters always, as the designs write them). */
 export function shortDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d, 12).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const [, m, d] = iso.split("-").map(Number);
+  return `${d} ${SHORT[m - 1]}`;
 }
 
 /** Section heading row with an optional link on the right. */

@@ -46,6 +46,12 @@ export function Spaces() {
             </Link>
           );
         })}
+        <Link href="/spaces/new" className="rise tap flex min-h-16 items-center justify-center gap-2.5 border-[1.5px] border-dashed border-rule-dash text-[17px] font-medium" style={{ "--i": spaces.length + 1 } as React.CSSProperties}>
+          <span aria-hidden className="text-[22px]">
+            +
+          </span>
+          Add a space
+        </Link>
         <div className="rise flex min-h-16 items-center justify-between border-t border-rule pt-1.5 text-ink-faint" style={{ "--i": spaces.length + 1 } as React.CSSProperties}>
           <span className="flex flex-col gap-0.5">
             <span className="text-[17px] font-medium">Farm or allotment</span>

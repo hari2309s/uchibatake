@@ -1,6 +1,7 @@
 "use client";
 
 import { cropById } from "@uchibatake/content";
+import Link from "next/link";
 import { useState, ViewTransition } from "react";
 import { BackBar } from "@/components/ui/bars";
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,15 @@ export function PlantDetail({ id }: { id: string }) {
 
   return (
     <div className="pb-10">
-      <BackBar href={space ? `/spaces/${space.id}` : "/spaces"} label={space?.name ?? "Spaces"} />
+      <BackBar
+        href={space ? `/spaces/${space.id}` : "/spaces"}
+        label={space?.name ?? "Spaces"}
+        right={
+          <Link href={`/plants/${p.id}/edit`} className="tap flex min-h-11 items-center px-2 text-[17px]">
+            Edit
+          </Link>
+        }
+      />
       <div className="relative flex justify-center pt-3">
         <ViewTransition name={`enso-${p.id}`} share="enso-morph" default="none">
           <div className="relative h-[210px] w-[210px]">
@@ -88,7 +97,7 @@ export function PlantDetail({ id }: { id: string }) {
         </Section>
       ) : null}
 
-      <Section title="Its story so far" i={3} className="pt-9">
+      <Section title="Its story so far" aside="See it all" href={`/plants/${p.id}/timeline`} i={3} className="pt-9">
         <ol className="flex flex-col gap-[18px] pt-3.5">
           {story.map((m, i) => (
             <li key={i} className="grid grid-cols-[64px_1fr] gap-3">

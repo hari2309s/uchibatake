@@ -97,7 +97,8 @@ export interface Planting extends Row {
   space_id: string;
   start_method: StartMethod;
   started_on: string;
-  status: "growing" | "ended" | "lost";
+  /** "planned": chosen for a later day; it becomes "growing" when its start job is ticked. */
+  status: "planned" | "growing" | "ended" | "lost";
   ended_on: string | null;
   lost_cause: "cold" | "dry" | "pests" | "unsure" | null;
   /** "four young plants from the market". */

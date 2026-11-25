@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { TodayList } from "@/components/app/today-list";
+import { ButtonLink } from "@/components/ui/button";
+import { Enso } from "@/components/ui/enso";
 import { Avatar } from "@/components/ui/avatar";
 import { NoticeRow } from "@/components/ui/notice";
 import { useHousehold, useMembers, usePlantings, useSettings, useSpaces, useTasksForDay } from "@/lib/data/hooks";
@@ -31,7 +33,7 @@ export function Home() {
   const plantings = usePlantings();
   const tasks = useTasksForDay(today ?? "");
   const notice = useLiveQuery(async () => (today ? (await live(db.notices)).find((n) => n.for_date === today) : undefined), [db, today]);
-  if (!today || !household) return null;
+  if (!today || !household || !plantings) return null;
 
   const me = members?.find((m) => m.role === "owner");
   const growing = (plantings ?? []).filter((p) => p.status === "growing");
@@ -61,11 +63,28 @@ export function Home() {
         </div>
       ) : null}
 
-      <Section title="Today" aside={open ? (open === 1 ? "One small thing" : "A few small things") : "All done"} i={2}>
-        <TodayList day={today} />
-      </Section>
+      {tasks?.length || growing.length ? (
+        <Section title="Today" aside={open ? (open === 1 ? "One small thing" : open >= 6 ? `${capitalise(numberWord(open))} things, no rush` : "A few small things") : "All done"} i={2}>
+          <TodayList day={today} />
+        </Section>
+      ) : null}
 
-      {spaces?.length ? (
+      {plantings.length === 0 ? (
+        // 15a: the first day. An open ensō that hasn't started closing, and one thing to do.
+        <section className="rise flex flex-col items-center gap-5 px-8 pt-12 text-center" style={{ "--i": 3 } as React.CSSProperties} aria-label="Your field is waiting">
+          <Enso value={6} size={120} />
+          <h2 className="font-mincho text-[30px] font-normal">Your field is waiting</h2>
+          <p className="max-w-[300px] text-[17px] leading-[1.6] text-ink-body">Start with one plant. We&apos;ll suggest one that suits the season and your space.</p>
+          <div className="flex w-full flex-col gap-2.5 pt-2">
+            <ButtonLink href="/add">Add your first plant</ButtonLink>
+            {spaces?.length ? null : (
+              <ButtonLink href="/spaces/new" variant="quiet">
+                Set up a space first
+              </ButtonLink>
+            )}
+          </div>
+        </section>
+      ) : spaces?.length ? (
         <Section title="My spaces" aside="See all" href="/spaces" i={3}>
           <div className="flex flex-col gap-3.5 pt-1">
             {spaces.map((s, si) => {
