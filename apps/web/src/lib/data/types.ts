@@ -1,4 +1,4 @@
-import type { ClimateType } from "@uchibatake/content";
+import type { ClimateType, SeasonTable } from "@uchibatake/content";
 
 /*
  * Rows in the on-device database. Every synced row carries the same
@@ -35,6 +35,8 @@ export interface Household extends Row {
   climate: ClimateType | null;
   /** Shipped season table id ("amsterdam"), or null to compute from normals. */
   season_table: string | null;
+  /** Seasons computed from this place's normals, when there's no shipped table. */
+  seasons?: SeasonTable | null;
   /** "YYYY-MM-DD" the family started. */
   since: string;
   /** From onboarding (A 05, A 06). */

@@ -35,7 +35,7 @@ export function Avatar({ mark, size = 46, selected = false, quiet = false, class
     <span
       aria-hidden
       className={cn(
-        "inline-flex flex-none items-center justify-center rounded-full font-mincho text-[18px] leading-none",
+        "inline-flex flex-none items-center justify-center rounded-full font-mincho text-[18px] leading-none transition-colors duration-300",
         quiet ? "bg-wash text-ink" : selected ? "bg-ink text-on-ink" : "border-[1.5px] border-rule text-ink",
         className
       )}
@@ -58,17 +58,17 @@ export function AvatarPicker({ members, value, onChange, legend }: { members: Pi
     <fieldset>
       <legend className="text-[17px]">{legend}</legend>
       <div className="mt-2.5 grid gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(members.length, 6)}, minmax(0, 1fr))` }}>
-        {members.map((m) => {
+        {members.map((m, i) => {
           const on = value.includes(m.id);
           return (
-            <label key={m.id} className="flex min-h-11 cursor-pointer flex-col items-center gap-[5px]">
+            <label key={m.id} className="rise flex min-h-11 cursor-pointer flex-col items-center gap-[5px] transition-transform active:scale-95" style={{ "--i": i } as React.CSSProperties}>
               <input
                 type="checkbox"
                 className="peer sr-only"
                 checked={on}
                 onChange={() => onChange(on ? value.filter((v) => v !== m.id) : [...value, m.id])}
               />
-              <Avatar mark={m.mark} selected={on} className="peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink" />
+              <Avatar mark={m.mark} selected={on} className={cn("peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink", on && "pop")} />
               <span className={cn("text-[16px]", on && "font-bold")}>{m.name}</span>
             </label>
           );

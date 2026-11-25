@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore, ViewTransition } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { SaveFieldSheet } from "@/components/auth/save-field-sheet";
 import { SignIn } from "@/components/auth/sign-in";
 import { WelcomeBack } from "@/components/auth/welcome-back";
@@ -69,9 +69,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
     <Column>
       {full ? null : <DemoStrip />}
       <main className="flex flex-1 flex-col pb-11">
-        <ViewTransition default="washi-page">
-          <div className="flex flex-1 flex-col">{children}</div>
-        </ViewTransition>
+        {children}
       </main>
       {full ? null : <BottomNav />}
       <SaveFieldSheet />

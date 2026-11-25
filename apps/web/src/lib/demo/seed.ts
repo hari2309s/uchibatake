@@ -4,7 +4,7 @@ import { setMeta } from "../data/db";
 import { DEFAULT_SETTINGS, type Harvest, type Household, type JournalEntry, type Member, type Notice, type Planting, type Reminder, type Seed, type Space, type Task } from "../data/types";
 
 /*
- * The demo: Sam & Rosie's family in De Pijp, Amsterdam (Kamala; Mira, Jules,
+ * The demo: Sam & Rosie's family in De Pijp, Amsterdam (Ida; Mira, Jules,
  * Noor), the household the Washi & Sumi designs show (renamed at the owner's request). Rows have stable ids so tests
  * can find them. The story happens around 23 November ("Rainbows hide") of the
  * most recent year that has reached it; today's small jobs are dated today.
@@ -13,7 +13,7 @@ import { DEFAULT_SETTINGS, type Harvest, type Household, type JournalEntry, type
  */
 
 export const DEMO_HOUSEHOLD = "demo-household";
-export const M = { sam: "demo-sam", rosie: "demo-rosie", kamala: "demo-kamala", mira: "demo-mira", jules: "demo-jules", noor: "demo-noor" } as const;
+export const M = { sam: "demo-sam", rosie: "demo-rosie", ida: "demo-ida", mira: "demo-mira", jules: "demo-jules", noor: "demo-noor" } as const;
 export const S = { garden: "demo-garden", balcony: "demo-balcony", sill: "demo-sill", rack: "demo-rack", lightShelf: "demo-light-shelf", greenhouse: "demo-greenhouse" } as const;
 export const P = {
   leeks: "demo-leeks",
@@ -79,7 +79,7 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
   const members: Member[] = [
     member(M.sam, 0, { name: "Sam", role: "owner", kind: "adult", mark: { kind: "initial", letter: "S" }, age: null, note: "Looks after it all" }),
     member(M.rosie, 1, { name: "Rosie", role: "editor", kind: "adult", mark: { kind: "initial", letter: "R" }, age: null, note: null }),
-    member(M.kamala, 2, { name: "Kamala", role: "helper", kind: "adult", mark: { kind: "initial", letter: "K" }, age: null, note: "Seed keeper" }),
+    member(M.ida, 2, { name: "Ida", role: "helper", kind: "adult", mark: { kind: "initial", letter: "I" }, age: null, note: "Seed keeper" }),
     member(M.mira, 3, { name: "Mira", role: "helper", kind: "child", mark: { kind: "leaf" }, age: 9, note: "snail patrol" }),
     member(M.jules, 4, { name: "Jules", role: "helper", kind: "child", mark: { kind: "bean" }, age: 6, note: "windowsill waterer" }),
     member(M.noor, 5, { name: "Noor", role: "helper", kind: "child", mark: { kind: "sprout" }, age: 3, note: "leaf gatherer" }),
@@ -182,26 +182,26 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
     measure,
     photo_ids: [],
   });
-  const strawberryPickers = [M.noor, M.mira, M.kamala, M.noor, M.jules, M.mira, M.noor, M.kamala, M.sam, M.noor, M.mira, M.jules, M.kamala, M.noor];
+  const strawberryPickers = [M.noor, M.mira, M.ida, M.noor, M.jules, M.mira, M.noor, M.ida, M.sam, M.noor, M.mira, M.jules, M.ida, M.noor];
   const harvests: Harvest[] = [
     // 14 strawberry pickings, about 140 berries (M12): Noor first, on 2 June.
     ...strawberryPickers.map((who, i) => harvest(P.strawberries, "strawberries", addDays(d("06-02"), i * 4), i === 0 ? 1 : 10 + (i % 3), "count", [who], i === 0 ? "Eaten by Noor before anyone saw" : null)),
-    harvest(P.rhubarb, "rhubarb", d("06-05"), 600, "g", [M.kamala]),
-    harvest(P.rhubarb, "rhubarb", d("06-20"), 450, "g", [M.kamala, M.noor]),
-    harvest(P.springBeans, "broad-beans", d("06-18"), 500, "g", [M.kamala, M.jules], "Into Kamala's sabzi"),
+    harvest(P.rhubarb, "rhubarb", d("06-05"), 600, "g", [M.ida]),
+    harvest(P.rhubarb, "rhubarb", d("06-20"), 450, "g", [M.ida, M.noor]),
+    harvest(P.springBeans, "broad-beans", d("06-18"), 500, "g", [M.ida, M.jules], "Into Ida's soup"),
     harvest(P.springBeans, "broad-beans", d("06-29"), 800, "g", [M.jules]),
     harvest(P.springBeans, "broad-beans", d("07-10"), 700, "g", [M.sam, M.jules]),
     harvest(P.oldGarlic, "garlic", d("07-14"), 14, "count", [M.sam], "Hung to dry in the shed"),
     ...[0, 9, 18, 27, 36, 45, 54, 63, 72, 81].map((k, i) => harvest(P.tomatoes, "tomatoes", addDays(d("07-20"), k), 150 + (i % 4) * 50, "g", [i % 2 ? M.mira : M.rosie])),
-    ...[0, 14, 28, 42, 56].map((k, i) => harvest(P.basil, "basil", addDays(d("06-25"), k), 30, "g", [i % 2 ? M.sam : M.kamala])),
-    harvest(P.greenOnions, "green-onions", d("11-12"), 20, "g", [M.kamala]),
-    harvest(P.greenOnions, "green-onions", d("11-18"), 20, "g", [M.kamala]),
+    ...[0, 14, 28, 42, 56].map((k, i) => harvest(P.basil, "basil", addDays(d("06-25"), k), 30, "g", [i % 2 ? M.sam : M.ida])),
+    harvest(P.greenOnions, "green-onions", d("11-12"), 20, "g", [M.ida]),
+    harvest(P.greenOnions, "green-onions", d("11-18"), 20, "g", [M.ida]),
     harvest(P.kale, "kale", d("10-12"), 150, "g", [M.sam], "First small picking, for a pan of eggs."),
     harvest(P.lambsLettuce, "lambs-lettuce", d("11-19"), 80, "g", [M.rosie], "One small bowl, with walnuts.", "one small bowl"),
     harvest(P.kale, "kale", d("11-21"), 3, "count", [M.mira], "Three leaves, frosted."),
     harvest(P.ghLettuce, "lettuce", d("11-08"), 120, "g", [M.rosie]),
-    harvest(P.ghLettuce, "lettuce", d("11-17"), 140, "g", [M.kamala, M.noor]),
-    harvest(P.shelfBasil, "basil", d("11-15"), 15, "g", [M.kamala]),
+    harvest(P.ghLettuce, "lettuce", d("11-17"), 140, "g", [M.ida, M.noor]),
+    harvest(P.shelfBasil, "basil", d("11-15"), 15, "g", [M.ida]),
   ];
 
   let jn = 0;
@@ -226,13 +226,13 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
     entry(d("11-03"), M.rosie, "Mira picked the caterpillars off by hand. No harm done.", { planting_ids: [P.kale] }),
     entry(d("11-12"), M.sam, "Nights dipped to 3°. It's on the kitchen sill now, beside the green onions.", { title: "The basil came inside", planting_ids: [P.basil], space_ids: [S.sill] }),
     entry(d("11-19"), M.rosie, "One small bowl, with walnuts. Noor says it tastes like grass. That's rather the point.", { title: "First lamb's lettuce", seal: "収", planting_ids: [P.lambsLettuce] }),
-    entry(d("11-21"), M.rosie, "Mira picked three leaves before school, still stiff with frost. Kamala said they taste like her mother's saag. Stamppot tonight for all six of us.", {
+    entry(d("11-21"), M.rosie, "Mira picked three leaves before school, still stiff with frost. Ida said her mother always waited for the first frost too. Stamppot tonight for all six of us.", {
       title: "The first frosted kale",
       seal: "収",
       planting_ids: [P.kale],
       space_ids: [S.balcony],
     }),
-    entry(d("11-22"), M.kamala, "“Rub the dry heads between your palms, like my mother did.” Enough for every pot next spring, and a jar for the kitchen.", {
+    entry(d("11-22"), M.ida, "“Rub the dry heads between your palms, like my mother did.” Enough for every pot next spring, and a jar for the kitchen.", {
       title: "Coriander seeds saved for spring",
       seal: "種",
       planting_ids: [P.coriander],
@@ -243,7 +243,7 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
   const seeds: Seed[] = [
     seed("demo-seed-beans", { crop_id: "broad-beans", name: "Broad beans", variety: "Aquadulce Claudia", source: "bought", saved_by: null, from_note: null, year: Y - 1, good_until: Y + 2 }),
     seed("demo-seed-garlic", { crop_id: "garlic", name: "Garlic", variety: "Germidour bulbs", source: "bought", saved_by: null, from_note: null, year: Y, good_until: null }),
-    seed("demo-seed-coriander", { crop_id: "coriander", name: "Coriander", variety: null, source: "saved", saved_by: M.kamala, from_note: "From the windowsill", year: Y, good_until: Y + 3 }),
+    seed("demo-seed-coriander", { crop_id: "coriander", name: "Coriander", variety: null, source: "saved", saved_by: M.ida, from_note: "From the windowsill", year: Y, good_until: Y + 3 }),
     seed("demo-seed-saved-beans", { crop_id: "broad-beans", name: "Broad beans", variety: null, source: "saved", saved_by: M.sam, from_note: "The fattest pods", year: Y, good_until: Y + 3 }),
     seed("demo-seed-lettuce", { crop_id: "lettuce", name: "Lettuce", variety: "Little Gem", source: "bought", saved_by: null, from_note: null, year: Y - 2, good_until: null }),
     seed("demo-seed-basil", { crop_id: "basil", name: "Basil", variety: "Genovese", source: "bought", saved_by: null, from_note: null, year: Y - 2, good_until: null }),
@@ -293,13 +293,13 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
       assignee_id: M.jules,
     }),
     task("demo-task-snip-onions", {
-      title: "Snip green onions for Kamala's dal",
+      title: "Snip green onions for Ida's omelette",
       detail: "Done this morning. They'll grow back.",
       due_on: today,
       source: "user",
       planting_ids: [P.greenOnions],
       done_at: morning.getTime(),
-      done_by: M.kamala,
+      done_by: M.ida,
     }),
     task("demo-task-snails", {
       title: "Mira's job: a snail check",
@@ -315,14 +315,14 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
       [
         [-6, "Water the windowsill", M.jules],
         [-5, "Snail check, after dark", M.mira],
-        [-5, "Pick the outer kale leaves", M.kamala],
+        [-5, "Pick the outer kale leaves", M.ida],
         [-4, "Water the windowsill", M.jules],
         [-3, "Top up the rack's water", M.sam],
         [-3, "Open the greenhouse vents", M.rosie],
         [-2, "Gather leaves for the beds", M.noor],
         [-2, "Water the windowsill", M.jules],
         [-1, "Snail check, after dark", M.mira],
-        [-1, "Sow mizuna in the greenhouse", M.kamala],
+        [-1, "Sow mizuna in the greenhouse", M.ida],
       ] as const
     ).map(([days, title, by], i) => {
       const day = addDays(today, days);
@@ -331,7 +331,7 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
     }),
     task("demo-task-leaves", {
       title: "Gather leaves for the beds",
-      detail: "Saturday, with Kamala.",
+      detail: "Saturday, with Ida.",
       due_on: addDays(today, (6 - now.getDay() + 7) % 7 || 7),
       source: "user",
       space_id: S.garden,

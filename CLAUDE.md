@@ -61,6 +61,6 @@ from climate normals for the user's location; notices come from the live forecas
 - Growing advice must be correct. Plant data (sowing windows, spacing, companions) is curated content
   with sources, not model output. When unsure, say less.
 - Truthfulness: every privacy or data claim in the UI must be true of the code (see the build prompt).
-- Demo household: Sam & Rosie's family in De Pijp, Amsterdam (Kamala; children Mira, Jules, Noor). The design
-  files call them Hari & Saskia (and Sem); the owner renamed them.
+- Demo household: Sam & Rosie's family in De Pijp, Amsterdam (grandmother Ida; children Mira, Jules, Noor). The
+  design files call them Hari & Saskia, Kamala and Sem; the owner renamed them. Don't use the design names.
 - Never commit design files, zips, `*_PROMPT.md`, or `.env*`.

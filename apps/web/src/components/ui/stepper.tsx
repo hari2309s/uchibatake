@@ -16,7 +16,10 @@ export function Stepper({ label, value, display, measure, onChange, min = 0, max
         −
       </button>
       <div className="flex flex-col items-center" aria-live="polite">
-        <span className={cn("font-mincho leading-none", big ? "text-[36px]" : "w-7 text-center text-[34px]")}>{display ?? value}</span>
+        {/* Keyed, so each new amount presses into place. */}
+        <span key={display ?? value} className={cn("pop font-mincho leading-none", big ? "text-[36px]" : "w-7 text-center text-[34px]")}>
+          {display ?? value}
+        </span>
         {measure ? <span className="mt-1 text-[16px] text-ink-soft">{measure}</span> : null}
       </div>
       <button type="button" className={btn} aria-label="More" disabled={value >= max} onClick={() => onChange(Math.min(max, value + step))}>

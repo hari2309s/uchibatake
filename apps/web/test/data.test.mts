@@ -24,7 +24,7 @@ test("demo: one household, six people with the kids' marks, six spaces", async (
   const db = await demoDb();
   assert.equal((await live(db.households)).length, 1);
   const members = await live(db.members);
-  assert.deepEqual(members.sort((a, b) => a.sort - b.sort).map((m) => m.name), ["Sam", "Rosie", "Kamala", "Mira", "Jules", "Noor"]);
+  assert.deepEqual(members.sort((a, b) => a.sort - b.sort).map((m) => m.name), ["Sam", "Rosie", "Ida", "Mira", "Jules", "Noor"]);
   assert.deepEqual(members.filter((m) => m.kind === "child").map((m) => m.mark.kind).sort(), ["bean", "leaf", "sprout"]);
   assert.deepEqual((await live(db.spaces)).map((s) => s.name).sort(), ["Back balcony", "Back garden", "Hallway rack", "Kitchen light shelf", "Kitchen windowsill", "Lean-to greenhouse"]);
 });
@@ -89,7 +89,7 @@ test("demo: today's four small things, one already done", async () => {
   const today = tasksForDay(await db.tasks.toArray(), "2026-11-23");
   assert.equal(today.length, 4);
   assert.equal(today.filter((t) => t.done_at).length, 1);
-  assert.equal(today.at(-1)!.title, "Snip green onions for Kamala's dal", "done jobs sort last");
+  assert.equal(today.at(-1)!.title, "Snip green onions for Ida's omelette", "done jobs sort last");
 });
 
 test("repo: creating stamps bookkeeping and marks the row dirty", async () => {

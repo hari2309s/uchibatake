@@ -1,5 +1,6 @@
 "use client";
 
+import { brushDraw } from "@/components/ui/enso";
 import { microseasonFor, seasonFor, SEASON_TABLES } from "@uchibatake/content";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,19 +20,19 @@ export function WelcomeBack({ account, onSomeoneElse }: { account: RememberedAcc
   const name = account.name ?? "friend";
 
   return (
-    <Column className="relative">
+    <Column className="page-enter relative">
       <VerticalWordmark text="おかえり" />
       <div className="flex flex-col gap-7 px-8 pt-[120px]">
         <svg width="96" height="96" aria-hidden className="block">
-          <circle cx="48" cy="48" r="39.36" fill="none" stroke="var(--ink)" strokeWidth="5.76" strokeLinecap="round" strokeDasharray="222.6 495" transform="rotate(-80 48 48)" />
-          <circle cx="49.15" cy="46.85" r="35.9" fill="none" stroke="var(--ink)" strokeWidth="1.44" strokeLinecap="round" strokeDasharray="182.5 495" transform="rotate(-70 48 48)" opacity=".4" />
+          <circle cx="48" cy="48" r="39.36" fill="none" stroke="var(--ink)" strokeWidth="5.76" strokeLinecap="round" transform="rotate(-80 48 48)" style={brushDraw(222.6, 2 * Math.PI * 39.36, 0, 1100)} />
+          <circle cx="49.15" cy="46.85" r="35.9" fill="none" stroke="var(--ink)" strokeWidth="1.44" strokeLinecap="round" transform="rotate(-70 48 48)" opacity=".4" style={brushDraw(182.5, 2 * Math.PI * 35.9, 260, 1100)} />
         </svg>
-        <div className="flex flex-col gap-2">
+        <div className="rise flex flex-col gap-2" style={{ "--i": 2 } as React.CSSProperties}>
           <h1 className="font-mincho text-[38px] font-normal leading-[1.2] text-balance">Welcome back, {name}.</h1>
           <p className="text-[17px] leading-[1.6] text-ink-body">{account.place ? `Your field in ${account.place} is waiting.` : "Your field is waiting."}</p>
         </div>
         {ms ? (
-          <div className="flex flex-col gap-1 border-t border-rule pt-[18px]">
+          <div className="rise flex flex-col gap-1 border-t border-rule pt-[18px]" style={{ "--i": 4 } as React.CSSProperties}>
             {season ? (
               <>
                 <span className="text-[15px] uppercase tracking-[.16em] text-ink-soft">Here in {account.place ?? table!.place}</span>

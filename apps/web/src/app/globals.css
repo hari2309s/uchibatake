@@ -150,18 +150,50 @@ body {
   50% { opacity: 1; }
 }
 @keyframes sheetup {
-  from { transform: translateY(24px); opacity: 0; }
+  from { transform: translateY(56px); opacity: 0; }
   to { transform: none; opacity: 1; }
 }
 
-/* Arriving content rises a few pixels out of the paper, one after another (--i). */
+/*
+ * Motion: slow and quiet, but always there.
+ * - .page-enter   every screen settles in when you arrive (route templates)
+ * - .rise         content lifts out of the paper, one after another (--i)
+ * - .pop          a tick, a chosen chip, a new number: a small press into place
+ * - ensō rings draw themselves; seals press in (ink-press)
+ * Reduced motion: nothing moves, but things still fade in (see the end).
+ */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+.page-enter {
+  animation: page-in 640ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
 @keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: none; }
 }
 .rise {
-  animation: rise 560ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
-  animation-delay: calc(var(--i, 0) * 70ms);
+  animation: rise 680ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+  animation-delay: calc(120ms + var(--i, 0) * 70ms);
+}
+
+@keyframes pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop {
+  animation: pop 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in {
+  animation: fade-in 600ms ease-out both;
 }
 
 /* A brush stroke drawing itself: the ensō rings (dashoffset from --c to --o). */
@@ -169,31 +201,38 @@ body {
   from { stroke-dashoffset: var(--c); }
   to { stroke-dashoffset: var(--o); }
 }
+/* Drawn SVG strokes (brand mark, permission drawings): length from pathLength=1. */
+@keyframes strokedraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.draw {
+  stroke-dasharray: 1;
+  animation: strokedraw 1100ms 150ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
 
 @keyframes scrimfade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 dialog[open]::backdrop {
-  animation: scrimfade 320ms ease-out both;
+  animation: scrimfade 360ms ease-out both;
+}
+dialog[open] {
+  animation: sheetup 420ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
-/* Route changes: the old page settles away, the new one rises in (React <ViewTransition>). */
-@keyframes vt-out {
-  to { opacity: 0; transform: translateY(-4px); }
+/* Pressing anything tappable gives a little under the finger. */
+.tap {
+  transition: transform 160ms ease-out, background-color 200ms ease-out, opacity 200ms ease-out;
 }
-@keyframes vt-in {
-  from { opacity: 0; transform: translateY(12px); }
+.tap:active {
+  transform: scale(0.985);
 }
-::view-transition-old(.washi-page) {
-  animation: vt-out 200ms ease-in both;
-}
-::view-transition-new(.washi-page) {
-  animation: vt-in 420ms 60ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
-}
-/* A plant's ensō glides from its row into the plant's page. */
+
+/* A plant's ensō glides from its row into the plant's page (React <ViewTransition>). */
 ::view-transition-group(.enso-morph) {
-  animation-duration: 480ms;
+  animation-duration: 520ms;
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
@@ -201,18 +240,56 @@ dialog[open]::backdrop {
   animation: inkpress 560ms cubic-bezier(0.2, 0.8, 0.3, 1) both, inkbleed 800ms 280ms ease-out both;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/*
+ * Reduced motion: nothing slides, scales or draws, but content still fades in
+ * gently, so the app never feels like it's jumping.
+ */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  @keyframes page-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes rise {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pop {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes inkpress {
+    from { opacity: 0; transform: rotate(-6deg); }
+    to { opacity: 1; transform: rotate(-6deg); }
+  }
+  @keyframes ensodraw {
+    from { stroke-dashoffset: var(--o); opacity: 0; }
+    to { stroke-dashoffset: var(--o); opacity: 1; }
+  }
+  @keyframes strokedraw {
+    from { stroke-dashoffset: 0; opacity: 0; }
+    to { stroke-dashoffset: 0; opacity: 1; }
+  }
+  @keyframes sheetup {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes inkdrop {
+    from { opacity: 0.5; }
+    to { opacity: 0.5; }
+  }
+  .tap:active {
+    transform: none;
+  }
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
-    animation: none !important;
-  }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    animation-delay: 0ms !important;
-    transition-duration: 1ms !important;
+    animation-duration: 200ms !important;
   }
 }

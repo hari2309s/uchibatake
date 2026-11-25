@@ -1,13 +1,23 @@
 import type { FieldDB } from "./data/db";
 import { addTask, create, householdId, live, update } from "./data/repo";
 import type { Household, Space, SpaceType } from "./data/types";
+import { seasonsFromNormals } from "@uchibatake/content";
+import type { ClimateSummary } from "./climate";
 import type { FirstSeason } from "./plan";
 import { seasonTableFor } from "./place";
 
 export interface Answers {
   where: SpaceType[];
   sun: Partial<Record<SpaceType, Space["sun"]>>;
-  place: { name: string; detail: string | null; lat: number; lon: number; found: "location" | "search" } | null;
+  place: {
+    name: string;
+    detail: string | null;
+    lat: number;
+    lon: number;
+    found: "location" | "search";
+    /** From 30 years of history, once fetched (01 Location's climate card). */
+    climate?: ClimateSummary | null;
+  } | null;
   people: number;
   likes: string[];
   diet: string[];
@@ -30,6 +40,9 @@ export async function finishOnboarding(db: FieldDB, a: Answers, plan: FirstSeaso
   const hid = await householdId(db);
   const area = a.place ? { lat: a.place.lat, lon: a.place.lon } : null;
   const seasonTable = area ? seasonTableFor(area) : null;
+  const summary = a.place?.climate ?? null;
+  // Amsterdam has its own table; anywhere else, seasons come from the place's normals (when we have them).
+  const seasons = !seasonTable && summary ? seasonsFromNormals(summary.normals, a.place?.name || "here") : null;
   const name = a.name.trim();
   const now = Date.now();
 
@@ -38,7 +51,8 @@ export async function finishOnboarding(db: FieldDB, a: Answers, plan: FirstSeaso
     place: a.place?.name ?? "",
     area,
     season_table: seasonTable,
-    climate: seasonTable ? "temperate" : null,
+    seasons,
+    climate: seasonTable ? "temperate" : (summary?.type ?? null),
     people_count: a.people,
     likes: a.likes,
     diet: a.diet,

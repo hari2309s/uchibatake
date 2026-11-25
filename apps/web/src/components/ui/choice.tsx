@@ -46,8 +46,9 @@ export function ChoiceList<V extends string>(props: {
           return (
             <label
               key={o.value}
+              style={{ "--i": i } as React.CSSProperties}
               className={cn(
-                "relative flex items-center",
+                "rise relative flex items-center transition-colors duration-300",
                 o.disabled ? "cursor-default text-ink-faint" : "cursor-pointer",
                 variant === "check" && "min-h-16 gap-4",
                 variant === "radio" && "min-h-[104px] gap-5",
@@ -69,7 +70,7 @@ export function ChoiceList<V extends string>(props: {
                 o.disabled ? (
                   <span aria-hidden className="h-[26px] w-[26px] flex-none rounded-[3px] border-[1.5px] border-dashed border-rule-dash" />
                 ) : on ? (
-                  <span aria-hidden className="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-[3px] bg-ink text-[16px] font-bold text-on-ink">
+                  <span aria-hidden className="pop flex h-[26px] w-[26px] flex-none items-center justify-center rounded-[3px] bg-ink text-[16px] font-bold text-on-ink">
                     ✓
                   </span>
                 ) : (
@@ -83,7 +84,7 @@ export function ChoiceList<V extends string>(props: {
               </span>
               {o.tag ? <span className="rounded-[2px] border border-ink-soft px-2 py-1 text-[15px] tracking-[.1em] text-ink-soft">{o.tag}</span> : null}
               {variant === "radio" ? (
-                <span aria-hidden className={cn("h-[22px] w-[22px] flex-none rounded-full border-ink", on ? "border-[6px]" : "border-[1.5px]")} />
+                <span aria-hidden className={cn("h-[22px] w-[22px] flex-none rounded-full border-ink transition-[border-width] duration-300 ease-out", on ? "border-[6px]" : "border-[1.5px]")} />
               ) : null}
             </label>
           );
@@ -100,14 +101,15 @@ export function Chips<V extends string>({ legend, hideLegend, options, value, on
     <fieldset>
       <legend className={hideLegend ? "sr-only" : "text-[17px]"}>{legend}</legend>
       <div className={cn("flex flex-wrap gap-2", !hideLegend && "mt-3")}>
-        {options.map((o) => {
+        {options.map((o, i) => {
           const on = value.includes(o.value);
           return (
             <label
               key={o.value}
+              style={{ "--i": i } as React.CSSProperties}
               className={cn(
-                "flex h-11 cursor-pointer items-center rounded-[22px] px-4 text-[16px] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink",
-                on ? "bg-ink text-on-ink" : "border-[1.5px] border-rule-strong"
+                "rise flex h-11 cursor-pointer items-center rounded-[22px] border-[1.5px] px-4 text-[16px] transition-[background-color,color,border-color,transform] duration-300 active:scale-95 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ink",
+                on ? "border-ink bg-ink text-on-ink" : "border-rule-strong"
               )}
             >
               <input
@@ -136,7 +138,7 @@ export function Segmented<V extends string>({ label, options, value, onChange, c
         <label
           key={o.value}
           className={cn(
-            "flex min-h-11 min-w-[76px] cursor-pointer items-center justify-center px-3 text-[16px] has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-4 has-[:focus-visible]:outline-current",
+            "flex min-h-11 min-w-[76px] cursor-pointer items-center justify-center px-3 text-[16px] transition-colors duration-300 has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-4 has-[:focus-visible]:outline-current",
             value === o.value && "bg-ink text-on-ink"
           )}
         >
@@ -159,8 +161,8 @@ export function Switch({ checked, onChange, label }: { checked: boolean; onChang
       onClick={() => onChange(!checked)}
       className="flex h-11 items-center"
     >
-      <span className={cn("flex h-[30px] w-[52px] rounded-[15px] p-[3px] transition-colors", checked ? "justify-end bg-ink" : "justify-start border-[1.5px] border-ink-soft p-[1.5px]")}>
-        <span className={cn("h-6 w-6 rounded-full", checked ? "bg-washi" : "bg-ink-soft")} />
+      <span className={cn("relative block h-[30px] w-[52px] rounded-[15px] border-[1.5px] transition-colors duration-300", checked ? "border-ink bg-ink" : "border-ink-soft bg-transparent")}>
+        <span className={cn("absolute left-[1.5px] top-[1.5px] h-6 w-6 rounded-full transition-[transform,background-color] duration-300 ease-out", checked ? "translate-x-[22px] bg-washi" : "bg-ink-soft")} />
       </span>
     </button>
   );
@@ -179,7 +181,7 @@ export function Tabs<V extends string>({ label, tabs, value, onChange }: { label
             type="button"
             aria-selected={on}
             onClick={() => onChange(t.value)}
-            className={cn("-mb-px flex h-[46px] flex-none items-center px-1 text-[17px]", on ? "border-b-2 border-ink font-bold" : "text-ink-soft")}
+            className={cn("-mb-px flex h-[46px] flex-none items-center border-b-2 px-1 text-[17px] transition-colors duration-300", on ? "border-ink font-bold" : "border-transparent text-ink-soft")}
           >
             {t.label}
           </button>

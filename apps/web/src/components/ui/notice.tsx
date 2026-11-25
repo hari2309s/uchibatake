@@ -1,5 +1,6 @@
 "use client";
 
+import { brushDraw } from "@/components/ui/enso";
 import Link from "next/link";
 import { Button } from "./button";
 import { CloseButton } from "./bars";
@@ -91,19 +92,21 @@ export function FullNotice({
       {frost ? (
         <div className="flex items-start gap-5 px-8 pt-1">
           <svg width="118" height="118" aria-hidden className="block flex-none">
-            <circle cx="59" cy="59" r="48" fill="none" stroke="var(--ink)" strokeWidth="6" strokeLinecap="round" strokeDasharray="250 400" transform="rotate(-40 59 59)" />
-            <circle cx="74" cy="44" r="13" fill="var(--ink)" />
-            <circle cx="80" cy="40" r="11" fill="var(--washi)" />
+            <circle cx="59" cy="59" r="48" fill="none" stroke="var(--ink)" strokeWidth="6" strokeLinecap="round" transform="rotate(-40 59 59)" style={brushDraw(250, 2 * Math.PI * 48, 0, 1100)} />
+            <g className="fade-in" style={{ animationDelay: "700ms" }}>
+              <circle cx="74" cy="44" r="13" fill="var(--ink)" />
+              <circle cx="80" cy="40" r="11" fill="var(--washi)" />
+            </g>
           </svg>
-          <span aria-hidden className="vertical font-mincho text-[44px] leading-none">
+          <span aria-hidden className="fade-in vertical font-mincho text-[44px] leading-none" style={{ animationDelay: "500ms" }}>
             {NOTICE_KANJI[kind]}
           </span>
         </div>
       ) : null}
-      <div className={cn("flex flex-col px-8", frost ? "gap-2.5 pt-[18px]" : "gap-[18px] pt-1")}>
+      <div className={cn("rise flex flex-col px-8", frost ? "gap-2.5 pt-[18px]" : "gap-[18px] pt-1")} style={{ "--i": 1 } as React.CSSProperties}>
         {dateLine ? <span className="text-[16px] text-ink-soft">{dateLine}</span> : null}
         {!frost ? (
-          <span aria-hidden className="font-mincho text-[170px] leading-[.95]">
+          <span aria-hidden className="rise font-mincho text-[170px] leading-[.95]">
             {NOTICE_KANJI[kind]}
           </span>
         ) : null}
@@ -116,7 +119,7 @@ export function FullNotice({
       {listHeading ? <h2 className="px-8 pt-6 font-mincho text-[21px] font-normal">{listHeading}</h2> : null}
       <ul className={cn("flex flex-col", frost ? "px-8 pt-2" : "mx-8 mt-[18px] border-t-[2.5px] border-ink")}>
         {items.map((it, i) => (
-          <li key={it.id} className={cn("border-rule", frost ? "border-t last:border-b" : "border-b")}>
+          <li key={it.id} className={cn("rise border-rule", frost ? "border-t last:border-b" : "border-b")} style={{ "--i": i + 3 } as React.CSSProperties}>
             <label className={cn("flex cursor-pointer items-center gap-3.5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink", frost ? "min-h-[70px]" : "min-h-16")}>
               <input type="checkbox" className="sr-only" checked={it.done} onChange={() => onToggle(it.id)} />
               {frost ? (

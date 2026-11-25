@@ -42,7 +42,7 @@ export function Progress({ total, current, fill = false, label }: { total: numbe
       className={cn("flex gap-1.5", fill && "w-full")}
     >
       {Array.from({ length: total }, (_, i) => (
-        <span key={i} className={cn("h-[3px] rounded-[2px]", fill ? "flex-1" : "w-7", i < current ? "bg-ink" : "bg-rule")} />
+        <span key={i} className={cn("h-[3px] rounded-[2px] transition-colors duration-500", fill ? "flex-1" : "w-7", i < current ? "bg-ink" : "bg-rule")} />
       ))}
     </div>
   );

@@ -4,7 +4,7 @@ import { cn } from "./cn";
  * ひとこと: a short tip. In the frames a small vertical "ひとこと" sits in the
  * left gutter; we keep that gutter as a thin ink rule instead of the kana
  * (decorative Japanese is kept to seals and notices). Optional eyebrow
- * ("FROM KAMALA") and a quieter body size for inline tips.
+ * ("FROM IDA") and a quieter body size for inline tips.
  */
 export function Hitokoto({ children, from, title, className }: { children: React.ReactNode; from?: string; title?: string; className?: string }) {
   return (

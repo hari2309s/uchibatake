@@ -24,7 +24,7 @@ import { useThemePref } from "@/lib/use-theme";
 const FAMILY: PickMember[] = [
   { id: "hari", name: "Hari", mark: { kind: "initial", letter: "H" } },
   { id: "saskia", name: "Saskia", mark: { kind: "initial", letter: "S" } },
-  { id: "kamala", name: "Kamala", mark: { kind: "initial", letter: "K" } },
+  { id: "ida", name: "Ida", mark: { kind: "initial", letter: "I" } },
   { id: "mira", name: "Mira", mark: { kind: "leaf" } },
   { id: "sem", name: "Sem", mark: { kind: "bean" } },
   { id: "noor", name: "Noor", mark: { kind: "sprout" } },
@@ -250,7 +250,7 @@ function Pane({ theme }: { theme: "light" | "dark" }) {
 
         <Section title="ひとこと and もったいない">
           <Hitokoto>Not sure? Look at the spot at 10, at 1, and at 4 o&apos;clock. Count how many times the sun is on it.</Hitokoto>
-          <Hitokoto from="Kamala">&ldquo;Keep the biggest cloves for planting. Big clove, big bulb.&rdquo;</Hitokoto>
+          <Hitokoto from="Ida">&ldquo;Keep the biggest cloves for planting. Big clove, big bulb.&rdquo;</Hitokoto>
           <Mottainai>Save the kale stems and leek tops for tomorrow&apos;s soup. Potato peels roast into crisps.</Mottainai>
         </Section>
 

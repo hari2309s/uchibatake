@@ -39,7 +39,8 @@ test("first season on 23 November in Amsterdam: three gentle plants, one per spa
   const garden = plan.items.find((i) => i.space.key === "garden")!;
   assert.equal(garden.crop.id, "garlic", "garlic is very easy and goes in now");
   assert.equal(garden.title, "Plant garlic");
-  assert.match(garden.line, /before mid-December/);
+  assert.equal(garden.line, "Plant before mid-December. Ready from late May.");
+  assert.deepEqual(plan.items.map((i) => i.space.key), ["sill", "garden", "balcony"], "windowsill, garden, balcony, as the design lists them");
   const sill = plan.items.find((i) => i.space.key === "sill")!;
   assert.ok(["pea-shoots", "green-onions"].includes(sill.crop.id), sill.crop.id);
   // Nothing suggested out of season: lamb's lettuce sowing ended mid-October.
@@ -51,7 +52,7 @@ test("first season: favourites that wait say when, from the data", () => {
   assert.ok(plan.later);
   assert.equal(plan.later!.crops[0].id, "tomatoes");
   assert.equal(plan.later!.from, "05-21");
-  assert.match(plan.later!.line, /^Tomatoes comes? later\. Here that's from late May, and we'll remind you\.$/);
+  assert.equal(plan.later!.line, "Tomatoes come later. Here that's from late May, and we'll remind you.");
 });
 
 test("first season: a windowsill alone in July still gets something; no spaces, no plan", () => {
@@ -164,4 +165,33 @@ test("growth: ready in the harvest window, just sown when young, 'ready from' ot
   assert.equal(readyWords(0), "now");
   assert.equal(readyWords(10), "in about 10 days");
   assert.equal(readyWords(21), "in about 3 weeks");
+});
+
+test("climate: daily history → normals, type and typical frost dates", async () => {
+  const { summarise, climateWords, frostWords } = await import("../src/lib/climate.ts");
+  // Two synthetic Amsterdam-like years: frost from 20 Nov to 5 Apr.
+  const time: string[] = [];
+  const mean: number[] = [];
+  const min: number[] = [];
+  const max: number[] = [];
+  const rain: number[] = [];
+  const M = [3.6, 3.9, 6.5, 9.8, 13.4, 16.2, 18.3, 18.1, 15.0, 11.2, 7.2, 4.3];
+  for (let y = 2001; y <= 2002; y++)
+    for (let dt = new Date(Date.UTC(y, 0, 1)); dt.getUTCFullYear() === y; dt.setUTCDate(dt.getUTCDate() + 1)) {
+      const iso = dt.toISOString().slice(0, 10);
+      const m = dt.getUTCMonth();
+      const mdd = iso.slice(5);
+      const frosty = mdd >= "11-20" || mdd <= "04-05";
+      time.push(iso);
+      mean.push(M[m]);
+      min.push(frosty ? -1 : M[m] - 3);
+      max.push(M[m] + 3);
+      rain.push(2.3);
+    }
+  const s = summarise(52.35, { time, temperature_2m_mean: mean, temperature_2m_min: min, temperature_2m_max: max, precipitation_sum: rain });
+  assert.equal(s.type, "temperate");
+  assert.equal(climateWords(s), "Mild and damp");
+  assert.equal(frostWords(s.firstFrost), "Usually late November");
+  assert.equal(frostWords(s.lastFrost), "Usually early April");
+  assert.ok(Math.abs(s.normals.meanTemp[6] - 18.3) < 0.01);
 });

@@ -1,5 +1,20 @@
 import { cn } from "./cn";
 
+/**
+ * Style that draws a circular brush stroke of length `len` on a ring of
+ * circumference `c`: one dash as long as the ring, pulled into view by the
+ * offset. Used for every ensō, so they all draw themselves on arrival.
+ */
+export function brushDraw(len: number, c: number, delay = 0, duration = 900): React.CSSProperties {
+  return {
+    strokeDasharray: `${c} ${c}`,
+    strokeDashoffset: c - len,
+    "--c": c,
+    "--o": c - len,
+    animation: `ensodraw ${duration}ms ${delay}ms cubic-bezier(.2,.8,.3,1) both`,
+  } as React.CSSProperties;
+}
+
 /** Ensō arc length for a progress value (0–100) on a circle of circumference `c`. Never fully closes unless asked. */
 export function ensoDash(value: number, c: number, closed = false): number {
   const v = Math.max(0, Math.min(100, value));
@@ -18,15 +33,7 @@ export function Enso({ value, size = 52, closed = false, label, className, draw 
   const c = 2 * Math.PI * r;
   const dash = ensoDash(value, c, closed);
   const second = value >= 85 && !closed;
-  // One dash the length of the ring, pulled into view by the offset: a brush drawing the stroke.
-  const stroke = (len: number, delay: number) =>
-    ({
-      strokeDasharray: `${c} ${c}`,
-      strokeDashoffset: c - len,
-      "--c": c,
-      "--o": c - len,
-      animation: draw ? `ensodraw 900ms ${delay}ms cubic-bezier(.2,.8,.3,1) both` : undefined,
-    }) as React.CSSProperties;
+  const stroke = (len: number, delay: number) => (draw ? brushDraw(len, c, delay) : { strokeDasharray: `${len} 400` });
   return (
     <svg
       width={size}
@@ -47,8 +54,8 @@ export function Enso({ value, size = 52, closed = false, label, className, draw 
 export function BrokenEnso({ size = 180, className }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 180 180" aria-hidden className={cn("block", className)}>
-      <circle cx="90" cy="90" r="70" fill="none" stroke="var(--ink)" strokeWidth="7" strokeLinecap="round" strokeDasharray="150 290" transform="rotate(-80 90 90)" />
-      <circle cx="93" cy="94" r="70" fill="none" stroke="var(--ink)" strokeWidth="7" strokeLinecap="round" strokeDasharray="180 260" transform="rotate(80 90 90)" />
+      <circle cx="90" cy="90" r="70" fill="none" stroke="var(--ink)" strokeWidth="7" strokeLinecap="round" transform="rotate(-80 90 90)" style={brushDraw(150, 2 * Math.PI * 70, 100, 1000)} />
+      <circle cx="93" cy="94" r="70" fill="none" stroke="var(--ink)" strokeWidth="7" strokeLinecap="round" transform="rotate(80 90 90)" style={brushDraw(180, 2 * Math.PI * 70, 700, 1000)} />
     </svg>
   );
 }

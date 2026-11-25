@@ -23,14 +23,16 @@ export function SignIn({ openEmail = false }: { openEmail?: boolean }) {
   const dateLabel = today ? parseIsoDate(today).toLocaleDateString("en-GB", { day: "numeric", month: "long" }).toUpperCase() : "";
 
   return (
-    <Column className="relative">
+    <Column className="page-enter relative">
       <VerticalWordmark />
       <div className="flex flex-col gap-5 px-8 pt-[86px]">
         <BrandMark />
-        <h1 className="font-mincho text-[44px] font-medium leading-none tracking-[-.01em]">Uchibatake</h1>
-        <p className="max-w-[290px] text-[18px] leading-[1.6] text-ink-body text-pretty">Grow a little food for the people you love — on a balcony, a windowsill, wherever you are.</p>
+        <h1 className="rise font-mincho text-[44px] font-medium leading-none tracking-[-.01em]" style={{ "--i": 1 } as React.CSSProperties}>
+          Uchibatake
+        </h1>
+        <p className="rise max-w-[290px] text-[18px] leading-[1.6] text-ink-body text-pretty" style={{ "--i": 2 } as React.CSSProperties}>Grow a little food for the people you love — on a balcony, a windowsill, wherever you are.</p>
       </div>
-      <div className="mx-8 mt-8 flex min-h-[118px] flex-col gap-1.5 border-t border-rule pt-5">
+      <div className="rise mx-8 mt-8 flex min-h-[118px] flex-col gap-1.5 border-t border-rule pt-5" style={{ "--i": 4 } as React.CSSProperties}>
         {ms ? (
           <>
             <div className="text-[15px] tracking-[.16em] text-ink-soft">TODAY · {dateLabel}</div>
@@ -40,7 +42,7 @@ export function SignIn({ openEmail = false }: { openEmail?: boolean }) {
           </>
         ) : null}
       </div>
-      <div className="mt-auto flex flex-col gap-2.5 px-8 pb-[30px] pt-8">
+      <div className="rise mt-auto flex flex-col gap-2.5 px-8 pb-[30px] pt-8" style={{ "--i": 6 } as React.CSSProperties}>
         {AUTH_CONFIGURED ? (
           <>
             <GoogleButton />

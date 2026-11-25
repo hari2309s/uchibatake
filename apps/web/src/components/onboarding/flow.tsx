@@ -1,12 +1,12 @@
 "use client";
 
-import { AMSTERDAM, seasonFor } from "@uchibatake/content";
+import { AMSTERDAM, seasonFor, seasonsFromNormals } from "@uchibatake/content";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Progress } from "@/components/ui/bars";
 import { Button } from "@/components/ui/button";
 import { ChoiceList, Chips, Tabs } from "@/components/ui/choice";
-import { Enso } from "@/components/ui/enso";
+import { BrushLines, Enso } from "@/components/ui/enso";
 import { Field } from "@/components/ui/field";
 import { Hitokoto } from "@/components/ui/notes";
 import { PermissionPage } from "@/components/ui/permission";
@@ -17,6 +17,7 @@ import { useHousehold } from "@/lib/data/hooks";
 import { rememberAccount, rememberedAccount, startAccount } from "@/lib/data/session";
 import { Redirect } from "@/components/app/redirect";
 import type { Space, SpaceType } from "@/lib/data/types";
+import { climateFor, climateWords, frostWords, nameArea, weatherNow, type WeatherNow } from "@/lib/climate";
 import { finishOnboarding, SPACE_NAMES } from "@/lib/onboarding";
 import { roughArea, searchPlaces, seasonTableFor, type Place } from "@/lib/place";
 import { firstSeason } from "@/lib/plan";
@@ -38,14 +39,16 @@ function Frame({ step, onSkip, children, action }: { step: Step; onSkip?: () => 
         ) : null}
       </div>
       <div className="flex flex-col">{children}</div>
-      <div className="mt-auto px-8 pb-[34px] pt-8">{action}</div>
+      <div className="rise mt-auto px-8 pb-[34px] pt-8" style={{ "--i": 6 } as React.CSSProperties}>
+        {action}
+      </div>
     </Column>
   );
 }
 
 function Heading({ title, lede }: { title: string; lede?: string }) {
   return (
-    <div className="flex flex-col gap-2.5 px-8 pt-6">
+    <div className="rise flex flex-col gap-2.5 px-8 pt-6" style={{ "--i": -1 } as React.CSSProperties}>
       <h1 className="font-mincho text-[32px] font-normal leading-[1.2] text-pretty">{title}</h1>
       {lede ? <p className="text-[17px] leading-normal text-ink-soft">{lede}</p> : null}
     </div>
@@ -218,11 +221,21 @@ function SunStep({ draft, change, next }: { draft: Draft; change: (p: Partial<Dr
 
 function LocationStep({ draft, change, next }: { draft: Draft; change: (p: Partial<Draft>) => void; next: () => void }) {
   const [asking, setAsking] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Place[]>([]);
   const [note, setNote] = useState<string | null>(null);
+  const [now, setNow] = useState<WeatherNow | null>(null);
+  const [climateState, setClimateState] = useState<"idle" | "loading" | "failed">("idle");
   const aborter = useRef<AbortController | null>(null);
+  const place = draft.place;
+  // Keep the latest draft for async callbacks (the climate arrives after the place is set).
+  const placeRef = useRef(place);
+  useEffect(() => {
+    placeRef.current = place;
+  }, [place]);
 
+  // Town search (Open-Meteo geocoding), debounced.
   useEffect(() => {
     if (q.trim().length < 2) return;
     const t = setTimeout(async () => {
@@ -238,48 +251,118 @@ function LocationStep({ draft, change, next }: { draft: Draft; change: (p: Parti
     return () => clearTimeout(t);
   }, [q]);
 
-  if (asking)
-    return (
-      <PermissionPage
-        kind="location"
-        onNotNow={() => setAsking(false)}
-        onAllow={() => {
-          setAsking(false);
-          if (!("geolocation" in navigator)) return setNote("This browser can't share a location. Type a town instead.");
-          navigator.geolocation.getCurrentPosition(
-            (pos) => change({ place: { name: "", detail: null, ...roughArea(pos.coords.latitude, pos.coords.longitude), found: "location" } }),
-            () => setNote("We couldn't get your location. Type a town instead."),
-            { enableHighAccuracy: false, timeout: 15_000, maximumAge: 600_000 }
-          );
-        }}
-      />
-    );
+  // Once there's a place: the weather now, and its climate (once; kept in the draft).
+  const key = place ? `${place.lat},${place.lon}` : null;
+  useEffect(() => {
+    if (!key) return;
+    const [lat, lon] = key.split(",").map(Number);
+    const ac = new AbortController();
+    weatherNow(lat, lon, ac.signal).then(setNow, () => setNow(null));
+    if (!placeRef.current?.climate) {
+      setClimateState("loading");
+      climateFor(lat, lon, ac.signal).then(
+        (climate) => {
+          const p = placeRef.current;
+          if (p && `${p.lat},${p.lon}` === key) change({ place: { ...p, climate } });
+          setClimateState("idle");
+        },
+        (e) => (e as Error).name !== "AbortError" && setClimateState("failed")
+      );
+    }
+    return () => ac.abort();
+    // `change` is stable enough for this: it only writes the draft.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
-  const place = draft.place;
+  const locate = () => {
+    setAsking(false);
+    if (!("geolocation" in navigator)) return setNote("This browser can't share a location. Type a town instead.");
+    setLocating(true);
+    setNote(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const area = roughArea(pos.coords.latitude, pos.coords.longitude);
+        // Name the rough area (OpenStreetMap). If that fails, keep the place and let them name it.
+        const named = await nameArea(area.lat, area.lon).catch(() => null);
+        change({ place: { name: named?.name ?? "", detail: named?.detail ?? null, ...area, found: "location", climate: null } });
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        setNote("We couldn't get your location. Type a town instead.");
+      },
+      { enableHighAccuracy: false, timeout: 15_000, maximumAge: 600_000 }
+    );
+  };
+
+  if (asking) return <PermissionPage kind="location" onNotNow={() => setAsking(false)} onAllow={locate} />;
+
+  const firstSpace = draft.where[0] ? SPACE_NAMES[draft.where[0]].toLowerCase() : null;
+  const climate = place?.climate ?? null;
   return (
     <Frame step="location" onSkip={next} action={<Button onClick={next}>Continue</Button>}>
-      <Heading title="Where are you?" lede="We follow your own weather and seasons, so the advice fits where you grow." />
-      <div className="flex flex-col gap-1 px-8 pt-5">
+      <Heading title="Where are you?" lede={`We follow your own weather and seasons, so the advice fits ${firstSpace ? `your ${firstSpace}` : "where you grow"}.`} />
+      <div className="flex flex-col px-8 pt-5">
         {place ? (
           <>
-            {place.found === "location" ? (
+            {place.found === "location" && !place.name ? (
               <Field label="What do you call this place?" placeholder="Your neighbourhood or town" value={place.name} onChange={(e) => change({ place: { ...place, name: e.target.value } })} />
             ) : (
-              <div className="flex flex-col gap-1 border-b-[1.5px] border-ink pb-2.5">
+              <div className="rise flex flex-col gap-1 border-b-[1.5px] border-ink pb-2.5">
                 <span className="text-[19px]">{place.name}</span>
                 {place.detail ? <span className="text-[16px] text-ink-soft">{place.detail}</span> : null}
               </div>
             )}
-            <div className="flex min-h-11 items-center justify-between gap-2.5 text-[16px] font-medium">
+            <div className="mt-1 flex min-h-11 items-center justify-between gap-2.5 text-[16px] font-medium">
               <span className="flex items-center gap-2.5">
                 <span aria-hidden className="h-3 w-3 rounded-full bg-ink" />
                 {place.found === "location" ? "Found with your current location" : "Found by name"}
               </span>
-              <button type="button" className="min-h-11 font-normal text-ink-soft underline underline-offset-4" onClick={() => change({ place: null })}>
+              <button
+                type="button"
+                className="min-h-11 font-normal text-ink-soft underline underline-offset-4"
+                onClick={() => {
+                  change({ place: null });
+                  setNow(null);
+                  setClimateState("idle");
+                }}
+              >
                 Change
               </button>
             </div>
+            <div className="rise mt-2.5 flex flex-col border border-rule bg-card px-5 pb-1.5 pt-[18px]" aria-live="polite">
+              <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                <span className="min-w-0 text-[15px] uppercase tracking-[.16em] text-ink-soft">Right now{place.name ? ` in ${place.name}` : ""}</span>
+                <span className="flex-none whitespace-nowrap font-mincho text-[22px]">{now ? `${Math.round(now.tempC)}° · ${now.words}` : ""}</span>
+              </div>
+              {climate ? (
+                (
+                  [
+                    ["Climate", climateWords(climate)],
+                    ["First frost", frostWords(climate.firstFrost)],
+                    ["Last frost", frostWords(climate.lastFrost)],
+                  ] as const
+                ).map(([k, v]) => (
+                  <div key={k} className="flex items-baseline justify-between border-t border-wash py-[11px]">
+                    <span className="text-[16px] text-ink-soft">{k}</span>
+                    <span className="font-mincho text-[17px]">{v}</span>
+                  </div>
+                ))
+              ) : climateState === "loading" ? (
+                <div className="border-t border-wash py-3">
+                  <BrushLines widths={[80, 60, 70]} />
+                  <span className="sr-only">Reading your climate</span>
+                </div>
+              ) : climateState === "failed" ? (
+                <p className="border-t border-wash py-3 text-[16px] text-ink-soft">We couldn&apos;t read your climate just now. Your seasons will follow once it loads.</p>
+              ) : null}
+            </div>
+            {place.found === "location" ? <p className="pt-2 text-[15px] text-ink-soft">Place names © OpenStreetMap contributors</p> : null}
           </>
+        ) : locating ? (
+          <p role="status" className="py-4 text-[17px] text-ink-body">
+            Finding where you are…
+          </p>
         ) : (
           <>
             <Field label="Town or neighbourhood" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="address-level2" />
@@ -287,7 +370,7 @@ function LocationStep({ draft, change, next }: { draft: Draft; change: (p: Parti
               <ul aria-label="Places" className="flex flex-col">
                 {results.map((r) => (
                   <li key={`${r.name}-${r.lat}-${r.lon}`}>
-                    <button type="button" className="flex min-h-14 w-full flex-col items-start justify-center border-b border-rule text-left" onClick={() => change({ place: { ...r, found: "search" } })}>
+                    <button type="button" className="flex min-h-14 w-full flex-col items-start justify-center border-b border-rule text-left" onClick={() => change({ place: { ...r, found: "search", climate: null } })}>
                       <span className="text-[17px]">{r.name}</span>
                       {r.detail ? <span className="text-[16px] text-ink-soft">{r.detail}</span> : null}
                     </button>
@@ -302,11 +385,11 @@ function LocationStep({ draft, change, next }: { draft: Draft; change: (p: Parti
           </>
         )}
         {note ? (
-          <p role="status" className="text-[16px] text-ink-soft">
+          <p role="status" className="pt-2 text-[16px] text-ink-soft">
             {note}
           </p>
         ) : null}
-        <p className="pt-3 text-[16px] leading-normal text-ink-soft">Only used for weather and seasons.</p>
+        <p className="pt-3.5 text-[16px] leading-normal text-ink-soft">Only used for weather and seasons.</p>
       </div>
     </Frame>
   );
@@ -318,13 +401,15 @@ function FirstSeasonView({ draft, today, onBegin }: { draft: Draft; today: strin
   const [problem, setProblem] = useState(false);
   const area = draft.place ? { lat: draft.place.lat, lon: draft.place.lon } : null;
   const table = area ? seasonTableFor(area) : null;
-  // Crop windows are only written for climates we know; elsewhere, say less until the weather is in (Phase 6).
-  const climate = table ? ("temperate" as const) : null;
+  const summary = draft.place?.climate ?? null;
+  // Crop windows are written for temperate climates; elsewhere we don't guess.
+  const climate = table ? ("temperate" as const) : (summary?.type ?? null);
+  const seasons = table ? AMSTERDAM : summary ? seasonsFromNormals(summary.normals, draft.place?.name || "here") : null;
   const plan = useMemo(() => {
     const spaces = draft.where.map((type) => ({ key: type, type, name: SPACE_NAMES[type] }));
     return climate ? firstSeason({ spaces, today, climate, likes: draft.likes }) : { items: [], later: null };
   }, [climate, draft.where, today, draft.likes]);
-  const eyebrow = [table ? seasonFor(AMSTERDAM, today.slice(5)).season.name : null, draft.place?.name || null, draft.people > 1 ? `${numberWord(draft.people)} of us` : "just me"].filter(Boolean).join(" · ");
+  const eyebrow = [seasons ? seasonFor(seasons, today.slice(5)).season.name : null, draft.place?.name || null, draft.people > 1 ? `${numberWord(draft.people)} of us` : "just me"].filter(Boolean).join(" · ");
 
   const begin = async () => {
     setBusy(true);
@@ -354,23 +439,27 @@ function FirstSeasonView({ draft, today, onBegin }: { draft: Draft; today: strin
 
   return (
     <Column>
-      <div className="flex flex-col gap-2.5 px-8 pt-10">
+      <div className="rise flex flex-col gap-2.5 px-8 pt-10">
         <div className="text-[15px] uppercase tracking-[.16em] text-ink-soft">{eyebrow}</div>
         <h1 className="max-w-[280px] font-mincho text-[34px] font-normal leading-[1.2]">Your first season</h1>
         <p className="max-w-[290px] text-[17px] leading-[1.55] text-ink-body">
           {plan.items.length
-            ? `${numberWord(plan.items.length).replace(/^./, (c) => c.toUpperCase())} gentle ${plan.items.length === 1 ? "plant" : "plants"} to start.`
+            ? `${numberWord(plan.items.length).replace(/^./, (c) => c.toUpperCase())} gentle ${plan.items.length === 1 ? "plant" : "plants"} to start.${plan.items.every((i) => i.crop.difficulty === "very-easy" || i.crop.difficulty === "easy") ? " Each one is hard to get wrong." : ""}`
             : !draft.where.length
               ? "Add a space when you're ready, and we'll suggest what to grow there."
-              : !climate
-                ? "Once we have your weather, we'll suggest a few gentle plants that suit it."
-                : "Nothing we'd start in your spaces right now. We'll suggest something as the season turns."}
+              : !draft.place
+                ? "Tell us where you are, and we'll suggest a few gentle plants that suit your weather."
+                : !climate
+                  ? "We're still reading your climate. Your first suggestions will follow."
+                  : climate !== "temperate"
+                    ? "We don't have growing dates for your climate yet, so we won't guess."
+                    : "Nothing we'd start in your spaces right now. We'll suggest something as the season turns."}
         </p>
       </div>
       {plan.items.length ? (
         <ol className="flex flex-col px-8 pt-5">
           {plan.items.map((item, i) => (
-            <li key={item.crop.id} className="flex gap-[18px] border-t border-rule py-4 last:border-b">
+            <li key={item.crop.id} className="rise flex gap-[18px] border-t border-rule py-4 last:border-b" style={{ "--i": i + 2 } as React.CSSProperties}>
               <span aria-hidden className="w-5 font-mincho text-[20px]">
                 {NUMERALS[i]}
               </span>
@@ -385,7 +474,11 @@ function FirstSeasonView({ draft, today, onBegin }: { draft: Draft; today: strin
           ))}
         </ol>
       ) : null}
-      {plan.later ? <p className="px-8 pl-[70px] pt-4 text-[16px] leading-normal text-ink-soft">{plan.later.line}</p> : null}
+      {plan.later ? (
+        <p className="rise px-8 pl-[70px] pt-4 text-[16px] leading-normal text-ink-soft" style={{ "--i": plan.items.length + 2 } as React.CSSProperties}>
+          {plan.later.line}
+        </p>
+      ) : null}
       <div className="mt-auto flex flex-col gap-2.5 px-8 pb-[34px] pt-8">
         {problem ? (
           <p role="status" className="text-center text-[16px] text-ink-soft">

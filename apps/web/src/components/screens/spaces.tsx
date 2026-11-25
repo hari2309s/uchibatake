@@ -24,7 +24,7 @@ export function Spaces() {
           const here = (plantings ?? []).filter((p) => p.space_id === s.id && p.status === "growing");
           const names = listWords(here.map((p, k) => (k ? plantName(p).toLowerCase() : plantName(p))));
           return (
-            <Link key={s.id} href={`/spaces/${s.id}`} className="rise flex flex-col gap-3.5 border border-rule bg-card p-5" style={{ "--i": i + 1 } as React.CSSProperties}>
+            <Link key={s.id} href={`/spaces/${s.id}`} className="rise tap flex flex-col gap-3.5 border border-rule bg-card p-5" style={{ "--i": i + 1 } as React.CSSProperties}>
               <span className="flex items-baseline justify-between">
                 <span className="font-mincho text-[23px]">{s.name}</span>
                 <span aria-hidden className="text-[20px]">

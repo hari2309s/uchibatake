@@ -36,7 +36,7 @@ export function Sheet({ open, onClose, title, eyebrow, children, hideClose }: { 
         // A click on the backdrop (the dialog element itself, outside the panel) closes it.
         if (e.target === e.currentTarget) onClose();
       }}
-      className="washi fixed inset-x-0 bottom-0 top-auto m-0 mx-auto max-h-[88dvh] w-full max-w-[480px] overflow-y-auto rounded-t-[18px] p-0 text-ink backdrop:bg-scrim open:animate-[sheetup_320ms_ease-out]"
+      className="washi fixed inset-x-0 bottom-0 top-auto m-0 mx-auto max-h-[88dvh] w-full max-w-[480px] overflow-y-auto rounded-t-[18px] p-0 text-ink backdrop:bg-scrim"
     >
       <div className="flex min-h-full flex-col">
         <div className="flex justify-center pt-2" aria-hidden>

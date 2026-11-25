@@ -50,7 +50,7 @@ export function Journal() {
           {entries
             .filter((e) => monthOf(e.written_on) === month)
             .map((e, i) => (
-              <Link key={e.id} href={`/journal/${e.id}`} className={`mx-8 flex flex-col gap-2 pt-5 ${i ? "mt-1.5 border-t border-rule" : ""}`}>
+              <Link key={e.id} href={`/journal/${e.id}`} className={`tap mx-8 flex flex-col gap-2 pt-5 ${i ? "mt-1.5 border-t border-rule" : ""}`}>
                 <span className="flex items-baseline justify-between">
                   <span className="text-[15px] uppercase tracking-[.12em] text-ink-soft">
                     {shortDate(e.written_on)} · {writer(e.writer_id)}

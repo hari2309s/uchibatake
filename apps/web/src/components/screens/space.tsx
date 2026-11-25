@@ -105,9 +105,9 @@ export function SpaceDetail({ id }: { id: string }) {
       <Section title="Growing here" i={3} className="pt-[34px]">
         {growing.length ? (
           <ul className="pt-2">
-            {growing.map((p) => (
+            {growing.map((p, i) => (
               <li key={p.id} className="border-b border-rule last:border-b-0">
-                <PlantCell p={p} today={today} indoors={isIndoors(space)} />
+                <PlantCell p={p} today={today} indoors={isIndoors(space)} i={i} />
               </li>
             ))}
           </ul>

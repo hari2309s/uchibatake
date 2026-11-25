@@ -1,5 +1,6 @@
 "use client";
 
+import { brushDraw } from "@/components/ui/enso";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { CloseButton } from "@/components/ui/bars";
@@ -38,8 +39,8 @@ export function LinkSent() {
       <div className="flex flex-col items-center gap-7 px-8 pt-10 text-center">
         <div className="relative h-[150px] w-[150px]" aria-hidden>
           <svg width="150" height="150" className="block">
-            <circle cx="75" cy="75" r="61.5" fill="none" stroke="var(--ink)" strokeWidth="9" strokeLinecap="round" strokeDasharray="332.3 773" transform="rotate(-80 75 75)" />
-            <circle cx="76.8" cy="73.2" r="56.1" fill="none" stroke="var(--ink)" strokeWidth="2.25" strokeLinecap="round" strokeDasharray="272.5 773" transform="rotate(-70 75 75)" opacity=".4" />
+            <circle cx="75" cy="75" r="61.5" fill="none" stroke="var(--ink)" strokeWidth="9" strokeLinecap="round" transform="rotate(-80 75 75)" style={brushDraw(332.3, 2 * Math.PI * 61.5, 0, 1100)} />
+            <circle cx="76.8" cy="73.2" r="56.1" fill="none" stroke="var(--ink)" strokeWidth="2.25" strokeLinecap="round" transform="rotate(-70 75 75)" opacity=".4" style={brushDraw(272.5, 2 * Math.PI * 56.1, 260, 1100)} />
           </svg>
           <span className="absolute left-1/2 top-1/2 -ml-[23px] -mt-4 h-8 w-[46px] border-[1.5px] border-ink" />
           <span className="absolute left-1/2 top-1/2 -ml-4 -mt-[33px] h-[33px] w-[33px] border-b-[1.5px] border-r-[1.5px] border-ink" style={{ transform: "rotate(45deg) scale(.68)" }} />

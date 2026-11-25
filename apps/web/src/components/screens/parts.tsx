@@ -31,10 +31,10 @@ export function PlantEnso({ p, today, size = 52, indoors = false }: { p: Plantin
 }
 
 /** Ensō + name + where it is in its season. */
-export function PlantCell({ p, today, compact = false, indoors = false }: { p: Planting; today: string; compact?: boolean; indoors?: boolean }) {
+export function PlantCell({ p, today, compact = false, indoors = false, i = 0 }: { p: Planting; today: string; compact?: boolean; indoors?: boolean; i?: number }) {
   const g = growthStatus(p, today, { indoors, climate: useClimate() });
   return (
-    <Link href={`/plants/${p.id}`} className={cn("flex items-center gap-3", compact ? "min-h-[52px]" : "min-h-16")}>
+    <Link href={`/plants/${p.id}`} className={cn("rise tap flex items-center gap-3", compact ? "min-h-[52px]" : "min-h-16")} style={{ "--i": i } as React.CSSProperties}>
       <PlantEnso p={p} today={today} size={compact ? 52 : 44} indoors={indoors} />
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[17px] font-medium">{plantName(p)}</span>
@@ -52,7 +52,7 @@ export function PlantCell({ p, today, compact = false, indoors = false }: { p: P
 export function SeasonHeader({ household, settings, today }: { household: Household; settings: Settings | undefined; today: string }) {
   const md = today.slice(5);
   const ms = microseasonFor(md);
-  const table = household.season_table ? SEASON_TABLES[household.season_table] : undefined;
+  const table = (household.season_table ? SEASON_TABLES[household.season_table] : undefined) ?? household.seasons ?? undefined;
   const local = table ? seasonFor(table, md) : null;
   const japanFirst = !local || settings?.seasonLead === "japan";
   const place = household.place || table?.place || "";

@@ -5,10 +5,32 @@ async function onTheDesignsDay(page: Page) {
   await page.clock.setFixedTime(new Date(2026, 10, 23, 9, 0));
 }
 
+/** Two years of Amsterdam-like daily history: frosts from late November to early April. */
+function archive() {
+  const M = [3.6, 3.9, 6.5, 9.8, 13.4, 16.2, 18.3, 18.1, 15.0, 11.2, 7.2, 4.3];
+  const daily = { time: [] as string[], temperature_2m_mean: [] as number[], temperature_2m_min: [] as number[], temperature_2m_max: [] as number[], precipitation_sum: [] as number[] };
+  for (let y = 2019; y <= 2020; y++)
+    for (let d = new Date(Date.UTC(y, 0, 1)); d.getUTCFullYear() === y; d.setUTCDate(d.getUTCDate() + 1)) {
+      const iso = d.toISOString().slice(0, 10);
+      const md = iso.slice(5);
+      const m = d.getUTCMonth();
+      daily.time.push(iso);
+      daily.temperature_2m_mean.push(M[m]);
+      daily.temperature_2m_min.push(md >= "11-20" || md <= "04-05" ? -1 : M[m] - 3);
+      daily.temperature_2m_max.push(M[m] + 3);
+      daily.precipitation_sum.push(2.3);
+    }
+  return { daily };
+}
+
+/** Every place and weather service the location step talks to, answered locally. */
 async function mockGeocoding(page: Page) {
   await page.route("https://geocoding-api.open-meteo.com/**", (route) =>
     route.fulfill({ json: { results: [{ name: "Amsterdam", latitude: 52.37403, longitude: 4.88969, admin1: "North Holland", country: "Netherlands" }] } })
   );
+  await page.route("https://nominatim.openstreetmap.org/**", (route) => route.fulfill({ json: { address: { suburb: "De Pijp", city: "Amsterdam", country: "Netherlands" } } }));
+  await page.route("https://api.open-meteo.com/**", (route) => route.fulfill({ json: { current: { temperature_2m: 6.4, weather_code: 61 } } }));
+  await page.route("https://archive-api.open-meteo.com/**", (route) => route.fulfill({ json: archive() }));
 }
 
 test("the front door: sign in, or explore without an account", async ({ page }) => {
@@ -39,6 +61,10 @@ test("onboarding as a guest → first plan → Home with the plan's jobs", async
   await page.getByLabel("Town or neighbourhood").fill("Amsterdam");
   await page.getByRole("button", { name: /^Amsterdam/ }).click();
   await expect(page.getByText("Found by name")).toBeVisible();
+  // 01 Location's card: the weather now and the climate.
+  await expect(page.getByText("6° · Rain")).toBeVisible();
+  await expect(page.getByText("Mild and damp")).toBeVisible();
+  await expect(page.getByText("Usually late November")).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
 
   await expect(page.getByRole("heading", { name: "Who are you growing for?" })).toBeVisible();
@@ -72,7 +98,7 @@ test("location asks first (M04), with words true to what happens", async ({ page
   await page.goto("/start/location");
   await page.getByRole("button", { name: "Use my current location" }).click();
   await expect(page.getByRole("heading", { name: "Where is your field?" })).toBeVisible();
-  await expect(page.getByText(/to fetch your weather/)).toBeVisible();
+  await expect(page.getByText(/fetch your weather/)).toBeVisible();
   await expect(page.getByText(/never leaves/)).toHaveCount(0);
   await page.getByRole("button", { name: "Not now" }).click();
   await expect(page.getByRole("heading", { name: "Where are you?" })).toBeVisible();
@@ -138,4 +164,43 @@ test("a returning guest goes straight back to their field, not through onboardin
   await page.getByRole("button", { name: "Start my own field" }).click();
   await expect(page.getByRole("heading", { name: "Rainbows hide" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Where will you grow?" })).toHaveCount(0);
+});
+
+test("use my current location: asks first, names the area, fills the card, and keeps it", async ({ page, context }) => {
+  await onTheDesignsDay(page);
+  await mockGeocoding(page);
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: 52.354712, longitude: 4.889733 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Explore without an account" }).click();
+  await page.getByRole("button", { name: "Start my own field" }).click();
+  await page.getByRole("checkbox", { name: /^Balcony/ }).click({ force: true });
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByRole("heading", { name: "How much sun does the spot get?" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await expect(page.getByRole("heading", { name: "Where are you?" })).toBeVisible();
+  await expect(page.getByText(/so the advice fits your balcony/)).toBeVisible();
+  // Only the rough area leaves the phone: coordinates are rounded before the lookup.
+  const lookup = page.waitForRequest((r) => r.url().startsWith("https://nominatim.openstreetmap.org/"));
+  await page.getByRole("button", { name: "Use my current location" }).click();
+  await expect(page.getByRole("heading", { name: "Where is your field?" })).toBeVisible();
+  await page.getByRole("button", { name: "Allow" }).click();
+  expect((await lookup).url()).toContain("lat=52.35&lon=4.89");
+
+  await expect(page.getByText("De Pijp", { exact: true })).toBeVisible();
+  await expect(page.getByText("Amsterdam, Netherlands")).toBeVisible();
+  await expect(page.getByText("Found with your current location")).toBeVisible();
+  await expect(page.getByText("RIGHT NOW IN DE PIJP", { exact: false })).toBeVisible();
+  await expect(page.getByText("Usually early April")).toBeVisible();
+
+  // Saved: leave the step and come back, it's still there.
+  await page.reload();
+  await expect(page.getByText("De Pijp", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByRole("heading", { name: "Who are you growing for?" })).toBeVisible();
+  await page.getByRole("button", { name: "Skip" }).click();
+  await expect(page.getByRole("heading", { name: "Have you grown things before?" })).toBeVisible();
+  await page.getByRole("button", { name: "Skip" }).click();
+  await expect(page.getByText(/LATE AUTUMN · DE PIJP · TWO OF US/i)).toBeVisible();
 });

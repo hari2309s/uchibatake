@@ -83,11 +83,13 @@ function describe(crop: Crop, how: PlanItem["how"], md: string, climate: Climate
     const allYear = ws?.some((x) => x.from === "01-01" && x.to === "12-31");
     parts.push(allYear ? `${verb} any time${how === "sowIndoors" ? ", indoors" : ""}.` : end ? `${verb} before ${dateWords(end)}.` : `${verb} now.`);
   }
-  if (crop.care?.pick) parts.push(crop.care.pick);
-  else {
-    const h = w?.harvest?.[0];
-    if (h && !(h.from === "01-01" && h.to === "12-31")) parts.push(`Ready from ${dateWords(h.from)}.`);
-  }
+  const h = w?.harvest?.find((x) => !(x.from === "01-01" && x.to === "12-31"));
+  if (how !== "scraps" && h) {
+    // The next harvest window after today.
+    const until = (from: string) => (almanacDay(from) - almanacDay(md) + 366) % 366;
+    const next = (w?.harvest ?? []).map((x) => x.from).sort((a, b) => until(a) - until(b))[0];
+    parts.push(`Ready from ${dateWords(next)}.`);
+  } else if (crop.care?.pick) parts.push(crop.care.pick);
   return { title, line: parts.join(" ") };
 }
 
@@ -103,9 +105,12 @@ export function firstSeason(opts: { spaces: PlanSpace[]; today: string; climate:
       .filter((x): x is { c: Crop; how: PlanItem["how"] } => x.how !== null)
       .sort((a, b) => EASE[a.c.difficulty ?? "unknown"] - EASE[b.c.difficulty ?? "unknown"] || Number(liked(b.c, likes)) - Number(liked(a.c, likes)) || a.c.name.localeCompare(b.c.name));
 
-  // One per space first, then fill from any space, up to three.
+  // The most particular spaces choose first (indoors, then the ground, then pots),
+  // so a crop that suits the garden isn't used up by the balcony. One per space, then fill up to three.
+  const ORDER: SpaceType[] = ["windowsill", "rack", "backyard", "greenhouse", "balcony"];
+  const ordered = [...spaces].sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type));
   for (let round = 0; round < 3 && items.length < 3; round++) {
-    for (const space of spaces) {
+    for (const space of ordered) {
       if (items.length >= 3) break;
       if (round === 0 && items.some((i) => i.space.key === space.key)) continue;
       const best = ranked(space)[0];
@@ -133,7 +138,9 @@ export function firstSeason(opts: { spaces: PlanSpace[]; today: string; climate:
     const first = waiting[0];
     const crops = waiting.filter((x) => daysUntil(x.from) - daysUntil(first.from) <= 21).slice(0, 2).map((x) => x.c);
     const names = listWords(crops.map((c) => c.name.toLowerCase()));
-    later = { crops, from: first.from, line: `${capitalise(names)} ${crops.length > 1 ? "come" : "comes"} later. Here that's from ${dateWords(first.from)}, and we'll remind you.` };
+    // "Tomatoes come", "Basil comes".
+    const plural = crops.length > 1 || crops[0].name.endsWith("s");
+    later = { crops, from: first.from, line: `${capitalise(names)} ${plural ? "come" : "comes"} later. Here that's from ${dateWords(first.from)}, and we'll remind you.` };
   }
   return { items, later };
 }

@@ -56,7 +56,7 @@ export function PlantDetail({ id }: { id: string }) {
         <ViewTransition name={`enso-${p.id}`} share="enso-morph" default="none">
           <div className="relative h-[210px] w-[210px]">
             <Enso value={g.progress} closed={g.closed} size={210} />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+            <div className="fade-in absolute inset-0 flex flex-col items-center justify-center gap-0.5" style={{ animationDelay: "450ms" }}>
               <span className="font-mincho text-[36px] leading-none">{centre[0]}</span>
               {centre[1] ? <span className="text-[16px] text-ink-soft">{centre[1]}</span> : null}
             </div>

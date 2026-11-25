@@ -68,18 +68,18 @@ export function Home() {
       {spaces?.length ? (
         <Section title="My spaces" aside="See all" href="/spaces" i={3}>
           <div className="flex flex-col gap-3.5 pt-1">
-            {spaces.map((s) => {
+            {spaces.map((s, si) => {
               const here = growing.filter((p) => p.space_id === s.id);
               return (
-                <div key={s.id} className="flex flex-col gap-[18px] border border-rule bg-card p-5">
-                  <Link href={`/spaces/${s.id}`} className="flex items-baseline justify-between gap-3">
+                <div key={s.id} className="rise flex flex-col gap-[18px] border border-rule bg-card p-5" style={{ "--i": si } as React.CSSProperties}>
+                  <Link href={`/spaces/${s.id}`} className="tap flex items-baseline justify-between gap-3">
                     <span className="font-mincho text-[21px]">{s.name}</span>
                     <span className="text-right text-[16px] text-ink-soft">{spaceLine(s)}</span>
                   </Link>
                   {here.length ? (
                     <div className="grid grid-cols-2 gap-x-3 gap-y-4">
-                      {here.map((p) => (
-                        <PlantCell key={p.id} p={p} today={today} compact indoors={isIndoors(s)} />
+                      {here.map((p, k) => (
+                        <PlantCell key={p.id} p={p} today={today} compact indoors={isIndoors(s)} i={k + 1} />
                       ))}
                     </div>
                   ) : (
@@ -99,9 +99,9 @@ export function Home() {
       {ready.length ? (
         <Section title="Ready soon" i={4}>
           <ul className="pt-3">
-            {ready.map(({ p, g }) => (
-              <li key={p.id} className="border-t border-rule last:border-b">
-                <Link href={`/plants/${p.id}`} className="flex items-baseline justify-between py-3.5">
+            {ready.map(({ p, g }, i) => (
+              <li key={p.id} className="rise border-t border-rule last:border-b" style={{ "--i": i } as React.CSSProperties}>
+                <Link href={`/plants/${p.id}`} className="tap flex items-baseline justify-between py-3.5">
                   <span className="text-[17px]">{plantName(p)}</span>
                   <span className="font-mincho text-[22px]">{readyWords(g.readyInDays!)}</span>
                 </Link>
