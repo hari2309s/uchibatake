@@ -9,6 +9,7 @@ import { BottomNav, Column } from "@/components/ui/shell";
 import { useHousehold } from "@/lib/data/hooks";
 import { DataProvider, useData, useSession } from "@/lib/data/provider";
 import { endSession, rememberedAccount, subscribeSession, type RememberedAccount } from "@/lib/data/session";
+import { ForecastProvider } from "@/lib/forecast-context";
 import { AppHeader } from "./header";
 import { Redirect } from "./redirect";
 
@@ -67,6 +68,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
   // Full-screen notices (13b) have no nav.
   const full = path.startsWith("/notice/") || path.startsWith("/kid/");
   return (
+    <ForecastProvider>
     <Column>
       {full ? null : <DemoStrip />}
       {full ? null : <AppHeader />}
@@ -76,6 +78,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
       {full ? null : <BottomNav />}
       <SaveFieldSheet />
     </Column>
+    </ForecastProvider>
   );
 }
 

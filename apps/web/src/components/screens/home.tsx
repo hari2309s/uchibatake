@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { TodayList } from "@/components/app/today-list";
+import { WeatherRow } from "./weather-row";
 import { ButtonLink } from "@/components/ui/button";
 import { Enso } from "@/components/ui/enso";
 import { NoticeRow } from "@/components/ui/notice";
@@ -43,7 +44,10 @@ export function Home() {
 
   return (
     <div className="pb-6">
-      <SeasonHeader household={household} settings={settings} today={today} />
+      <Link href="/year" aria-label="The growing year" className="tap block">
+        <SeasonHeader household={household} settings={settings} today={today} />
+      </Link>
+      <WeatherRow today={today} />
 
       {notice ? (
         <div className="rise mx-8 mt-7" style={{ "--i": 1 } as React.CSSProperties}>
