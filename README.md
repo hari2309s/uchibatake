@@ -1,12 +1,40 @@
+<div align="center">
+
+<img src="apps/web/src/app/icon.png" width="100" height="100" alt="Uchibatake icon: an open ensō with the 畑 seal">
+
 # Uchibatake · うちばたけ
 
-*Our family's field.* Grow a little food for the people you love — on a balcony, a windowsill, a rack in the
-hallway, a backyard or a greenhouse.
+### Our family's field.
 
-A calm, local-first PWA for beginners: the app is a patient grandparent beside you. Your field lives on your
-phone; nothing needs an account to work.
+Grow a little food for the people you love — on a balcony, a windowsill, a rack in the hallway, a backyard or a
+greenhouse. A calm, local-first PWA for beginners: the app is a patient grandparent beside you. Your field lives
+on your phone; nothing needs an account to work.
 
-Next.js 16 · React 19 · Tailwind 4 · TypeScript · Dexie (IndexedDB) · Supabase (sign-in) · Open-Meteo (weather).
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/hari2309s/uchibatake&root-directory=apps/web)
+
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![View Transitions](https://img.shields.io/badge/View_Transitions-React_19-1F1C19?logo=react&logoColor=white)
+
+![Local-first](https://img.shields.io/badge/Local--first-IndexedDB-B83A26)
+![Dexie](https://img.shields.io/badge/Dexie-live_queries-1F1C19)
+![Supabase](https://img.shields.io/badge/Supabase-Auth_(Google_%2B_email)-3ECF8E?logo=supabase&logoColor=white)
+![Open-Meteo](https://img.shields.io/badge/Open--Meteo-forecast_%2B_climate-FF8800)
+![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-place_names-7EBC6F?logo=openstreetmap&logoColor=white)
+
+![Curated content](https://img.shields.io/badge/Crops-RHS--sourced-5A544C)
+![72 microseasons](https://img.shields.io/badge/七十二候-72_microseasons-1F1C19)
+
+![pnpm](https://img.shields.io/badge/pnpm-workspaces-F69220?logo=pnpm&logoColor=white)
+![tsx](https://img.shields.io/badge/tsx-unit_tests-3178C6?logo=typescript&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-e2e_tests-2EAD33?logo=playwright&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-deployment-000000?logo=vercel&logoColor=white)
+
+</div>
+
+---
 
 ## What works today
 
