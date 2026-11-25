@@ -10,8 +10,8 @@
     "build": "pnpm --filter @uchibatake/web build",
     "start": "pnpm --filter @uchibatake/web start",
     "lint": "pnpm --filter @uchibatake/web lint",
-    "typecheck": "pnpm --filter @uchibatake/web typecheck",
-    "test": "pnpm --filter @uchibatake/web test",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
     "test:e2e": "pnpm --filter @uchibatake/web test:e2e"
   },
   "engines": {

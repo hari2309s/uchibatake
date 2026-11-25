@@ -1,0 +1,19 @@
+{
+  "name": "@uchibatake/content",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Curated, read-only growing content: crops, the 72 microseasons, local seasons.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "tsx test/run.mts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}
