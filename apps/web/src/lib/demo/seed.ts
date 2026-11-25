@@ -56,6 +56,11 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
     climate: "temperate",
     season_table: "amsterdam",
     since: d("06-01"),
+    people_count: 6,
+    likes: ["tomatoes", "herbs", "greens"],
+    diet: [],
+    experience: "some",
+    onboarded_at: t0,
   };
 
   const member = (id: string, sort: number, m: Omit<Member, keyof typeof base | "id" | "sort" | "user_id">): Member => ({ ...base, id, sort, user_id: null, ...m });

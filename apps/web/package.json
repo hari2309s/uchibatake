@@ -12,6 +12,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@next/env": "16.4.6",
+    "@supabase/supabase-js": "^2.119.2",
     "@uchibatake/content": "workspace:*",
     "dexie": "4.4.7",
     "dexie-react-hooks": "4.4.0",

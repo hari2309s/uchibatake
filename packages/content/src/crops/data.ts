@@ -99,8 +99,9 @@ export const CROPS: Crop[] = [
     start: {
       seed: { ok: true, why: "Plant cloves, not seeds." },
       plant: { ok: false, why: "Garlic starts from cloves." },
-      scraps: { ok: false, why: "Shop garlic may carry disease. Use planting bulbs." },
+      scraps: { ok: false, why: "Start from planting cloves." },
     },
+    sowVerb: "Plant",
     windows: {
       temperate: {
         sow: [w("10-15", "12-15")],

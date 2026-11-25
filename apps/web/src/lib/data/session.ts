@@ -6,11 +6,26 @@
  */
 import { forgetFieldDB } from "./db";
 
-export type Session = { kind: "guest"; id: string } | { kind: "demo"; id: "demo" };
+export type Session =
+  | { kind: "guest"; id: string }
+  | { kind: "demo"; id: "demo" }
+  | { kind: "account"; id: string; email: string; name: string | null; provider: "google" | "email" };
+
+/** The last account used on this device, for "Welcome back" (M02). Kept until "Not you?". */
+export interface RememberedAccount {
+  id: string;
+  email: string;
+  name: string | null;
+  provider: "google" | "email";
+  place: string | null;
+  /** The shipped season table for their place, if any (for the "Here in …" line). */
+  seasonTable: string | null;
+}
 
 const KEY = "uchibatake-session";
 /** The guest field's id outlives the session, so leaving and coming back finds the same field. */
 const GUEST_KEY = "uchibatake-guest-id";
+const LAST_ACCOUNT_KEY = "uchibatake-last-account";
 
 const listeners = new Set<() => void>();
 let snapshot: { raw: string | null; value: Session | null } = { raw: null, value: null };
@@ -40,6 +55,8 @@ function parse(raw: string | null): Session | null {
     const v = raw ? JSON.parse(raw) : null;
     if (v?.kind === "demo") return { kind: "demo", id: "demo" };
     if (v?.kind === "guest" && typeof v.id === "string") return { kind: "guest", id: v.id };
+    if (v?.kind === "account" && typeof v.id === "string")
+      return { kind: "account", id: v.id, email: String(v.email ?? ""), name: v.name ?? null, provider: v.provider === "google" ? "google" : "email" };
   } catch {
     // A damaged value is the same as none.
   }
@@ -98,4 +115,39 @@ export async function deleteGuestField(): Promise<void> {
   if (readSession()?.kind === "guest") write(null);
   if (id) await forgetFieldDB(id);
   setItem(GUEST_KEY, null);
+}
+
+/** The guest field id on this device, if there is one. */
+export function guestId(): string | null {
+  return getItem(GUEST_KEY) ?? null;
+}
+
+/** Forgets the guest field id (after its data moved into an account). */
+export function forgetGuestId(): void {
+  setItem(GUEST_KEY, null);
+}
+
+/** Signed in: this device now uses the account's own field. */
+export function startAccount(user: { id: string; email: string; name: string | null; provider: "google" | "email" }): void {
+  write({ kind: "account", ...user });
+  const prev = rememberedAccount()?.id === user.id ? rememberedAccount() : null;
+  rememberAccount({ ...user, place: prev?.place ?? null, seasonTable: prev?.seasonTable ?? null });
+}
+
+export function rememberAccount(a: RememberedAccount): void {
+  setItem(LAST_ACCOUNT_KEY, JSON.stringify(a));
+}
+
+export function rememberedAccount(): RememberedAccount | null {
+  try {
+    const v = JSON.parse(getItem(LAST_ACCOUNT_KEY) ?? "null");
+    return v && typeof v.id === "string" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** "Not Hari? Use another account". */
+export function forgetRememberedAccount(): void {
+  setItem(LAST_ACCOUNT_KEY, null);
 }

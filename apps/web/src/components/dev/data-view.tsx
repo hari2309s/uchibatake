@@ -3,14 +3,14 @@
 import { cropById } from "@uchibatake/content";
 import { Button } from "@/components/ui/button";
 import { Column } from "@/components/ui/shell";
-import { Seal } from "@/components/ui/seal";
+import { TodayList } from "@/components/app/today-list";
 import { Eyebrow, SectionHeading, Title } from "@/components/ui/text";
 import { isoDate } from "@/lib/dates";
-import { useHarvests, useHousehold, useJournal, useMembers, usePlantings, useSeeds, useSpaces, useTasksForDay } from "@/lib/data/hooks";
+import { useHarvests, useHousehold, useJournal, useMembers, usePlantings, useSeeds, useSpaces } from "@/lib/data/hooks";
 import { DataProvider, useData } from "@/lib/data/provider";
 import { harvestTotals } from "@/lib/data/queries";
-import { completeTask, reopenTask } from "@/lib/data/repo";
 import { endSession, startDemo, startGuest } from "@/lib/data/session";
+import { signOutHere } from "@/lib/auth";
 
 function Choose() {
   return (
@@ -26,7 +26,7 @@ function Choose() {
 }
 
 function Inside() {
-  const { db, session } = useData();
+  const { session } = useData();
   const household = useHousehold();
   const members = useMembers();
   const spaces = useSpaces();
@@ -35,14 +35,12 @@ function Inside() {
   const journal = useJournal();
   const seeds = useSeeds();
   const today = isoDate();
-  const tasks = useTasksForDay(today);
-  const me = members?.find((m) => m.role === "owner")?.id ?? null;
   const totals = harvests ? harvestTotals(harvests) : [];
 
   return (
     <Column className="gap-8 px-8 pb-16 pt-10">
       <div className="flex flex-col gap-2">
-        <Eyebrow>{session.kind === "demo" ? "Demo" : "Guest"} · on this device</Eyebrow>
+        <Eyebrow>{session.kind === "demo" ? "Demo" : session.kind === "guest" ? "Guest" : "Account"} · on this device</Eyebrow>
         <Title>{household?.name ?? ""}</Title>
         <p className="text-ink-soft">{household?.place}</p>
       </div>
@@ -71,22 +69,7 @@ function Inside() {
         <SectionHeading id="today" aside="A few small things">
           Today
         </SectionHeading>
-        <ul className="mt-2">
-          {tasks?.map((t) => (
-            <li key={t.id} className="border-b border-rule last:border-b-0">
-              <label className="flex min-h-[72px] cursor-pointer items-center gap-4 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink">
-                <input type="checkbox" className="sr-only" checked={!!t.done_at} onChange={() => void (t.done_at ? reopenTask(db, t.id) : completeTask(db, t.id, me))} />
-                <span className="flex h-11 w-11 flex-none items-center justify-center">
-                  {t.done_at ? <Seal kind="済" press /> : <span aria-hidden className="h-[26px] w-[26px] rounded-full border-[1.5px] border-ink" />}
-                </span>
-                <span className="flex flex-col gap-[3px]">
-                  <span className={t.done_at ? "text-[17px] font-medium text-ink-soft" : "text-[17px] font-medium"}>{t.title}</span>
-                  {t.detail ? <span className="text-[16px] text-ink-soft">{t.detail}</span> : null}
-                </span>
-              </label>
-            </li>
-          ))}
-        </ul>
+        <TodayList day={today} />
       </section>
 
       <section aria-labelledby="totals" className="flex flex-col gap-2">
@@ -103,8 +86,14 @@ function Inside() {
         </ul>
       </section>
 
-      <Button variant="outline" onClick={endSession}>
-        Leave {session.kind === "demo" ? "the demo" : "this field"}
+      <Button
+        variant="outline"
+        onClick={async () => {
+          if (session.kind === "account") await signOutHere();
+          endSession();
+        }}
+      >
+        {session.kind === "account" ? "Sign out" : `Leave ${session.kind === "demo" ? "the demo" : "this field"}`}
       </Button>
     </Column>
   );

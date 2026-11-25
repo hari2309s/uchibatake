@@ -52,6 +52,11 @@ async function ensureHousehold(db: FieldDB, session: Session): Promise<string> {
       climate: null,
       season_table: null,
       since: isoDate(),
+      people_count: null,
+      likes: [],
+      diet: [],
+      experience: null,
+      onboarded_at: null,
     };
     await create(db.households, h, id);
   });

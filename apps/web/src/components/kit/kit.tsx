@@ -10,6 +10,7 @@ import { Field, PhotoSlot } from "@/components/ui/field";
 import { MonthStrip } from "@/components/ui/month-strip";
 import { Hitokoto, Mottainai } from "@/components/ui/notes";
 import { FullNotice, NoticeRow, type NoticeItem, type NoticeKind } from "@/components/ui/notice";
+import { PermissionPage, type PermissionKind } from "@/components/ui/permission";
 import { PhotoFrame } from "@/components/ui/photo";
 import { Seal, SEAL_NAMES, type SealKind } from "@/components/ui/seal";
 import { Sheet } from "@/components/ui/sheet";
@@ -55,6 +56,7 @@ function Pane({ theme }: { theme: "light" | "dark" }) {
   const [sheet, setSheet] = useState(false);
   const [notice, setNotice] = useState<NoticeKind | null>(null);
   const [steps, setSteps] = useState(false);
+  const [permission, setPermission] = useState<PermissionKind | null>(null);
   const [items, setItems] = useState<NoticeItem[]>([
     { id: "a", text: "Fleece over the spinach and lamb's lettuce", done: true },
     { id: "b", text: "Slide the basil back from the window glass", done: false },
@@ -62,8 +64,8 @@ function Pane({ theme }: { theme: "light" | "dark" }) {
   ]);
   // Full-screen views start at the top, like a real screen change.
   useEffect(() => {
-    if (notice || steps) window.scrollTo(0, 0);
-  }, [notice, steps]);
+    if (notice || steps || permission) window.scrollTo(0, 0);
+  }, [notice, steps, permission]);
   const toggle = (id: string) => setItems((xs) => xs.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
 
   if (notice)
@@ -81,6 +83,13 @@ function Pane({ theme }: { theme: "light" | "dark" }) {
           primary={{ label: notice === "frost" ? "All done" : "All three done", onClick: () => setNotice(null) }}
           secondary={{ label: notice === "frost" ? "Remind me at 16:00" : "Remind me in an hour", onClick: () => setNotice(null) }}
         />
+      </div>
+    );
+
+  if (permission)
+    return (
+      <div className={`${theme} washi`}>
+        <PermissionPage kind={permission} onAllow={() => setPermission(null)} onNotNow={() => setPermission(null)} />
       </div>
     );
 
@@ -283,6 +292,16 @@ function Pane({ theme }: { theme: "light" | "dark" }) {
               <Button onClick={() => setSheet(false)}>Save harvest</Button>
             </ActionDock>
           </Sheet>
+        </Section>
+
+        <Section title="Before we ask (M04–M06)">
+          <div className="grid grid-cols-3 gap-2">
+            {(["location", "notifications", "camera"] as const).map((k) => (
+              <Button key={k} variant="outline" size="sm" onClick={() => setPermission(k)}>
+                {k[0].toUpperCase() + k.slice(1)}
+              </Button>
+            ))}
+          </div>
         </Section>
 
         <Section title="Fields and photos">

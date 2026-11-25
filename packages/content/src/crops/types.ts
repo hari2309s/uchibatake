@@ -64,6 +64,8 @@ export interface Crop {
   /** Smallest pot that suits it, in cm. */
   pot?: { depthCm?: number; widthCm?: number };
   start: { seed: Applies; plant: Applies; scraps: Applies };
+  /** The verb for starting it, when "Sow" is wrong ("Plant the cloves of" → "Plant garlic"). */
+  sowVerb?: string;
   windows: Partial<Record<ClimateType, ClimateWindows>>;
   goodWith?: Neighbour[];
   keepApart?: Neighbour[];

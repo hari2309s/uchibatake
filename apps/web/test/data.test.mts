@@ -162,7 +162,7 @@ test("harvest totals: counts and grams kept apart; a picker counted once per pic
 
 test("create works for a guest household too (no demo ids)", async () => {
   const db = new FieldDB(`test-guest-${++n}`);
-  const h = await create(db.households, { name: "Our field", place: "", address: null, area: null, climate: null, season_table: null, since: "2026-11-23" }, "will-be-replaced");
+  const h = await create(db.households, { name: "Our field", place: "", address: null, area: null, climate: null, season_table: null, since: "2026-11-23", people_count: null, likes: [], diet: [], experience: null, onboarded_at: null }, "will-be-replaced");
   assert.equal((await live(db.households)).length, 1);
   assert.ok(h.id);
 });

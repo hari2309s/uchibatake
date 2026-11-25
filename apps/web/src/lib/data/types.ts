@@ -37,6 +37,13 @@ export interface Household extends Row {
   season_table: string | null;
   /** "YYYY-MM-DD" the family started. */
   since: string;
+  /** From onboarding (A 05, A 06). */
+  people_count: number | null;
+  likes: string[];
+  diet: string[];
+  experience: "never" | "some" | "veg" | "green-thumb" | null;
+  /** When onboarding finished (ms); null while it's still going. */
+  onboarded_at: number | null;
 }
 
 export interface Member extends Row {
