@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { fontClasses } from "./fonts";
+import { ServiceWorker } from "@/components/app/sw";
 import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
@@ -24,7 +25,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="washi min-h-dvh antialiased">{children}</body>
+      <body className="washi min-h-dvh antialiased">
+        {children}
+        <ServiceWorker />
+      </body>
     </html>
   );
 }

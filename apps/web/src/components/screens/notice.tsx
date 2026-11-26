@@ -3,7 +3,8 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { useRouter } from "next/navigation";
 import { FullNotice } from "@/components/ui/notice";
-import { useMembers } from "@/lib/data/hooks";
+import { useMembers, useSettings } from "@/lib/data/hooks";
+import { deg } from "@/lib/forecast";
 import { useData } from "@/lib/data/provider";
 import { create, toggleNoticeItem, update } from "@/lib/data/repo";
 import { useToday } from "@/lib/use-today";
@@ -16,6 +17,7 @@ export function NoticeView({ id }: { id: string }) {
   const router = useRouter();
   const today = useToday();
   const members = useMembers();
+  const settings = useSettings();
   const notice = useLiveQuery(async () => {
     const n = await db.notices.get(id);
     return n && !n.deleted_at ? n : null;
@@ -26,7 +28,7 @@ export function NoticeView({ id }: { id: string }) {
   if (notice === null) return <Redirect to="/" />;
   if (!notice) return null;
   const title = notice.kind === "frost" ? "Frost tonight" : notice.kind === "heat" ? "Hot today" : "Heavy rain tonight";
-  const body = notice.kind === "frost" && notice.low !== null ? `Down to ${String(notice.low).replace("-", "−")}° in the night.` : "";
+  const body = notice.kind === "frost" && notice.low !== null ? `Down to ${deg(notice.low, settings?.units)} in the night.` : "";
   return (
     <FullNotice
       kind={notice.kind}

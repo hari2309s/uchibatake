@@ -23,6 +23,8 @@ on your phone; nothing needs an account to work.
 ![Supabase](https://img.shields.io/badge/Supabase-Auth_(Google_%2B_email)-3ECF8E?logo=supabase&logoColor=white)
 ![Open-Meteo](https://img.shields.io/badge/Open--Meteo-forecast_%2B_climate-FF8800)
 ![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-place_names-7EBC6F?logo=openstreetmap&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-installable_%2B_offline-5A0FC8?logo=pwa&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq_%2F_OpenRouter-plant_diagnosis-F55036)
 
 ![Curated content](https://img.shields.io/badge/Crops-RHS--sourced-5A544C)
 ![72 microseasons](https://img.shields.io/badge/七十二候-72_microseasons-1F1C19)
@@ -57,8 +59,15 @@ on your phone; nothing needs an account to work.
 - **Weather & seasons** — a seven-day forecast, "This week's sky", and the growing-year ring (local seasons
   outside, the 72 microseasons within).
 
-Still to come: rack / grow-light / greenhouse details, plant diagnosis, recipes, PWA install and offline shell,
-notifications, settings and export, and opt-in sync between phones.
+- **Rack, grow-light shelf, greenhouse** — tank and feeding, light hours, vents and the outside temperature.
+- **Something looks wrong?** — a photo and what you see; a free vision model picks only from each crop's curated
+  problems (symptom rules without a key). Fixes gentlest first.
+- **For the table** — five family recipes keyed to what's ready, respecting the family's diets.
+- **Install and offline** — add it to your home screen; visited pages work offline; a quiet "new version" strip.
+- **Notes** — a daily note and frost warnings, only after you allow them, never in quiet hours.
+- **Settings** — units, season lead, notes, privacy, "Export my field" (a ZIP of field.json and photos) and delete.
+
+Still to come: opt-in sync between phones (and with it, notes while the app is closed).
 
 ## Run it
 
@@ -75,7 +84,7 @@ Without any keys the app works fully as a guest or the demo. To turn on sign-in,
 ```sh
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable or anon key>
-# Later, for plant diagnosis (server-side only):
+# Optional, for photo diagnosis (server-side only):
 GROQ_API_KEY=
 OPENROUTER_API_KEY=
 ```
@@ -105,7 +114,9 @@ Vercel: set the root directory to `apps/web`, add the two `NEXT_PUBLIC_SUPABASE_
   between phones is a later, opt-in step.
 - Your location is rounded to about a kilometre before it's used: to name your neighbourhood (OpenStreetMap),
   fetch the weather and your climate history (Open-Meteo). It isn't stored on any server.
-- The share card is drawn on your phone; nothing is uploaded.
+- A plant photo is sent (through our server) to Groq or OpenRouter only when you ask us to look at it; we don't
+  keep it.
+- The share card is drawn on your phone; nothing is uploaded. Export gives you everything as a ZIP.
 
 ## Layout
 

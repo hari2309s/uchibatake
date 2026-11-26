@@ -7,6 +7,8 @@ import type { NextConfig } from "next";
 loadEnvConfig(path.resolve(process.cwd(), "../.."), process.env.NODE_ENV !== "production", undefined, true);
 
 const nextConfig: NextConfig = {
+  // Each build gets its own service worker (and caches): see public/sw.js.
+  env: { NEXT_PUBLIC_BUILD: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || String(Date.now()) },
   /* config options here */
   cacheComponents: true,
   // The curated content package ships TypeScript source.

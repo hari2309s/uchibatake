@@ -11,6 +11,7 @@ import { DataProvider, useData, useSession } from "@/lib/data/provider";
 import { endSession, rememberedAccount, subscribeSession, type RememberedAccount } from "@/lib/data/session";
 import { ForecastProvider } from "@/lib/forecast-context";
 import { AppHeader } from "./header";
+import { Notifier } from "./notifier";
 import { Redirect } from "./redirect";
 
 function useRemembered(): RememberedAccount | null {
@@ -77,6 +78,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
       </main>
       {full ? null : <BottomNav />}
       <SaveFieldSheet />
+      <Notifier />
     </Column>
     </ForecastProvider>
   );

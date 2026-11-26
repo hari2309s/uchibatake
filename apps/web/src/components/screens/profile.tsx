@@ -81,6 +81,7 @@ export function Profile() {
           <Segmented label="Look" value={theme} onChange={setTheme} options={[{ value: "system", label: "Auto" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }]} />
         </Row>
         <Row i={10} label="Signed in with" value={signedIn} />
+        <Row i={11} label="Settings" href="/settings" value="Notes, data, privacy" />
       </div>
       <div className="rise px-8 pt-8" style={{ "--i": 11 } as React.CSSProperties}>
         <Button
