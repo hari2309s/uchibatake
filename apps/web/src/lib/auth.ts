@@ -1,5 +1,6 @@
 "use client";
 
+import { stopPushHere } from "./push";
 import { supabase } from "./supabase";
 
 export type Provider = "google" | "email";
@@ -65,5 +66,7 @@ export async function finishSignIn(code: string): Promise<AccountUser | null> {
 
 /** Signs out on this device only (the field stays on the device under the account). */
 export async function signOutHere(): Promise<void> {
+  // While still signed in: this browser stops getting the account's daily note.
+  await stopPushHere();
   await supabase()?.auth.signOut({ scope: "local" });
 }

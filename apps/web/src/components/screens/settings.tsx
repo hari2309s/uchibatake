@@ -23,6 +23,9 @@ import { deleteAccountEverywhere } from "@/lib/data/sharing";
 import { RemoteError } from "@/lib/data/sync";
 import { AUTH_CONFIGURED } from "@/lib/supabase";
 import { SharingSection } from "./sharing-section";
+import { PUSH_ON_KEY } from "@/lib/push";
+import { useLiveQuery } from "dexie-react-hooks";
+import { getMeta } from "@/lib/data/db";
 
 const head = "px-8 pt-7 text-[15px] font-normal uppercase tracking-[.16em] text-ink-soft";
 
@@ -41,6 +44,7 @@ export function SettingsView() {
   const router = useRouter();
   const household = useHousehold();
   const settings = useSettings();
+  const pushClaim = useLiveQuery(() => getMeta<string | null>(db, PUSH_ON_KEY), [db]);
   const [asking, setAsking] = useState<null | (() => void)>(null);
   const [deleting, setDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -49,6 +53,7 @@ export function SettingsView() {
   const set = (p: Partial<S>) => void setSettings(db, p);
   // A note only counts as on when the phone allows notes: otherwise the switch shows off, and turning it on asks.
   const allowed = notesAllowed();
+  const pushOn = session.kind === "account" && typeof pushClaim === "string" && pushClaim.startsWith(`${session.id}|`);
   const doExport = async () => {
     if (busy) return;
     setBusy(true);
@@ -121,9 +126,13 @@ export function SettingsView() {
             <input type="time" aria-label="Quiet until" value={settings.quietHours.to} onChange={(e) => e.target.value && set({ quietHours: { ...settings.quietHours, to: e.target.value } })} className="h-11 bg-transparent text-ink" />
           </span>
         </Row>
-        {/* True of the code: no push server yet, so notes come while the app is open or running. */}
+        {/* True of the code: "closed" only when this phone's push is really claimed (lib/push.ts). */}
         <p className="pt-3 text-[15px] leading-normal text-ink-soft">
-          {notesAllowed() ? "Notes arrive while Uchibatake is open or running on this phone. Never during quiet hours." : "Notes are off on this phone. Turn one on above to allow them."}
+          {!allowed
+            ? "Notes are off on this phone. Turn one on above to allow them."
+            : pushOn
+              ? "The daily note comes even when Uchibatake is closed, at the time you chose (with a frost line if tonight freezes). The evening frost warning comes while the app is open. Never during quiet hours."
+              : "Notes arrive while Uchibatake is open or running on this phone. Never during quiet hours."}
         </p>
         {note ? (
           <p role="status" className="pt-2 text-[16px] text-ink-soft">

@@ -10,7 +10,7 @@ const LINES: [string, string][] = [
   ["Signing in", "If you sign in, Supabase handles it (Google or an email link). They know your email address and name; nothing from your field is sent to them unless you turn on sharing."],
   ["Your location", "If you use your phone's location, it's rounded to about a kilometre first. That rough area is sent to OpenStreetMap to name your neighbourhood, and to Open-Meteo for your weather and 30 years of climate history. If you type a town instead, those words are sent to Open-Meteo to find it. We don't keep it on a server, unless you share your field: then the rough area goes with it, so the family's weather matches. Your street address never does."],
   ["Plant photos", "Only if you ask us to look at one, that photo is sent through our server to an AI service (Groq or OpenRouter) to read it. We don't keep it; their own rules apply. Other photos never leave your phone."],
-  ["Notes", "Notes are made on your phone from your own field, and only after you allow them."],
+  ["Notes", "Notes are made on your phone from your own field, and only after you allow them. If you're signed in and use the daily note, our server keeps this browser's push address and keys, linked to your account, with the time, your time zone and the last day it woke the phone. The wake-up carries nothing from your field."],
   ["The share card", "Drawn on your phone. Nothing is uploaded unless you share it yourself."],
   ["Taking it with you", "Settings › Export my field gives you everything as a ZIP: a field.json and your photos."],
 ];

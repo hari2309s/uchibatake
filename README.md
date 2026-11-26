@@ -24,6 +24,7 @@ on your phone; nothing needs an account to work.
 ![Open-Meteo](https://img.shields.io/badge/Open--Meteo-forecast_%2B_climate-FF8800)
 ![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-place_names-7EBC6F?logo=openstreetmap&logoColor=white)
 ![PWA](https://img.shields.io/badge/PWA-installable_%2B_offline-5A0FC8?logo=pwa&logoColor=white)
+![Web Push](https://img.shields.io/badge/Web_Push-daily_note-1F1C19)
 ![Groq](https://img.shields.io/badge/Groq_%2F_OpenRouter-plant_diagnosis-F55036)
 
 ![Curated content](https://img.shields.io/badge/Crops-RHS--sourced-5A544C)
@@ -71,7 +72,8 @@ on your phone; nothing needs an account to work.
   link ("Send a link" → join), helpers or editors; the newest change wins. Photos and your street address stay
   on the phone.
 
-Still to come: notes while the app is closed (Web Push).
+- **The daily note while closed** (signed in) — an empty Web Push wakes the phone at the chosen time; it writes the note
+  from its own field (jobs, and a frost line if tonight freezes).
 
 ## Run it
 
@@ -101,6 +103,17 @@ back to localhost. Turn on the **Google** provider with an OAuth client whose re
 For sharing between phones, run `supabase/migrations/20261126000000_uchi_sharing.sql` once in the SQL editor
 (or `supabase db push`). It's safe to run again. Without it, everything works on one phone.
 
+For the daily note while the app is closed (optional):
+
+1. Pushes are checked every 15 minutes. `npx web-push generate-vapid-keys`; set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`,
+   `SUPABASE_SECRET_KEY` and `UCHI_CRON_SECRET` in Vercel (see `.env.example`).
+2. Run `supabase/migrations/20261127000000_uchi_push.sql`; turn on the `pg_cron` and `pg_net` extensions first.
+3. In the SQL editor, once:
+   `select vault.create_secret('https://<your site>/api/push/tick', 'uchi_push_tick_url');`
+   `select vault.create_secret('<UCHI_CRON_SECRET>', 'uchi_cron_secret');`
+
+Without these, notes still arrive while the app is open.
+
 Vercel: set the root directory to `apps/web`, add the two `NEXT_PUBLIC_SUPABASE_*` variables, and
 `ENABLE_EXPERIMENTAL_COREPACK=1` so the pinned pnpm is used.
 
@@ -126,6 +139,8 @@ Vercel: set the root directory to `apps/web`, add the two `NEXT_PUBLIC_SUPABASE_
   field (then the rough area goes with it, for the family's weather).
 - A plant photo is sent (through our server) to Groq or OpenRouter only when you ask us to look at it; we don't
   keep it.
+- The daily note while closed: our server keeps the browser's push address and keys, linked to the account, with
+  the time, time zone and last day sent; the push carries nothing from your field.
 - The share card is drawn on your phone; nothing is uploaded. Export gives you everything as a ZIP.
 
 ## Layout
