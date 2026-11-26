@@ -1,5 +1,7 @@
 "use client";
 
+import { byRegion, regionOf, type Place } from "@uchibatake/content";
+import { placeOf } from "@/lib/place-climate";
 import { CROPS, searchCrops, windowsFor, almanacDay, inWindows, type Crop } from "@uchibatake/content";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,9 +19,9 @@ import { useToday } from "@/lib/use-today";
 import { dateWords } from "@/lib/words";
 
 /** How far through its starting season a crop is today (for the search row's ensō), 0 when not in season. */
-function seasonProgress(c: Crop, md: string, climate: "temperate" | null): number {
-  if (!climate) return 6;
-  const w = windowsFor(c, climate);
+function seasonProgress(c: Crop, md: string, place: Place | null): number {
+  if (!place) return 6;
+  const w = windowsFor(c, place);
   const win = [...(w?.sow ?? []), ...(w?.sowIndoors ?? []), ...(w?.plantOut ?? [])].find((x) => inWindows(md, [x]));
   if (!win) return 6;
   if (win.from === "01-01" && win.to === "12-31") return 60;
@@ -71,13 +73,14 @@ export function AddPlant() {
   const [q, setQ] = useState("");
   if (!today || !household || !spaces) return null;
   const md = today.slice(5);
-  const climate = household.climate === "temperate" ? ("temperate" as const) : null;
-  const bestSpace = (c: Crop) => (climate ? rankSpaces(c, spaces, md, climate)[0] : undefined);
+  const place = placeOf(household);
+  const region = regionOf(household.country);
+  const bestSpace = (c: Crop) => (place ? rankSpaces(c, spaces, md, place)[0] : undefined);
   const line = (c: Crop) => {
-    if (!climate) return null;
-    const s = spaces.find((sp) => startsNow(c, { key: sp.id, type: sp.type, name: sp.name }, md, climate, 1));
+    if (!place) return null;
+    const s = spaces.find((sp) => startsNow(c, { key: sp.id, type: sp.type, name: sp.name }, md, place));
     if (s) return { now: true, text: "A good time to start." };
-    const w = windowsFor(c, climate);
+    const w = windowsFor(c, place);
     const windows = [...(w?.sow ?? []), ...(w?.sowIndoors ?? []), ...(w?.plantOut ?? [])];
     if (windows.some((x) => inWindows(md, [x]))) return { now: false, text: "Its season is now, but not in your spaces." };
     const until = (from: string) => (almanacDay(from) - almanacDay(md) + 366) % 366;
@@ -85,8 +88,9 @@ export function AddPlant() {
     return next ? { now: false, text: `Wait until ${dateWords(next)}.` } : null;
   };
   const query = q.trim();
-  const list = query ? searchCrops(query) : CROPS.filter((c) => c.sources.length && climate && spaces.some((s) => startsNow(c, { key: s.id, type: s.type, name: s.name }, md, climate, 1))).slice(0, 8);
-  const later = climate ? firstSeason({ spaces: spaces.map((s) => ({ key: s.id, type: s.type, name: s.name })), today, climate, likes: household.likes }).later : null;
+  // Popular where the family lives first, in search and in "good to start now".
+  const list = query ? searchCrops(query, region) : byRegion(CROPS, region).filter((c) => c.sources.length && place && spaces.some((s) => startsNow(c, { key: s.id, type: s.type, name: s.name }, md, place))).slice(0, 8);
+  const later = place ? firstSeason({ spaces: spaces.map((s) => ({ key: s.id, type: s.type, name: s.name })), today, place, likes: household.likes, region }).later : null;
 
   return (
     <div className="pb-9">
@@ -97,7 +101,7 @@ export function AddPlant() {
       <div className="rise px-8 pt-4" style={{ "--i": 1 } as React.CSSProperties}>
         <Field label="Search plants" hideLabel placeholder="Search: leeks, mint, peas…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
-      {!query && climate ? <h2 className="rise px-8 pt-7 text-[15px] font-normal uppercase tracking-[.16em] text-ink-soft">Good to start now{household.place ? ` in ${household.place}` : ""}</h2> : null}
+      {!query && place ? <h2 className="rise px-8 pt-7 text-[15px] font-normal uppercase tracking-[.16em] text-ink-soft">Good to start now{household.place ? ` in ${household.place}` : ""}</h2> : null}
       {query && !list.length ? (
         <OwnPlant key={query} name={query} />
       ) : (
@@ -109,7 +113,7 @@ export function AddPlant() {
             return (
               <li key={c.id} className="rise border-b border-rule" style={{ "--i": i + 2 } as React.CSSProperties}>
                 <Link href={`/crops/${c.id}`} className="tap flex items-center gap-4 py-4">
-                  <Enso value={seasonProgress(c, md, climate)} size={44} label={l?.now ? "In its starting season" : undefined} />
+                  <Enso value={seasonProgress(c, md, place)} size={44} label={l?.now ? "In its starting season" : undefined} />
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="font-mincho text-[21px]">{c.name}</span>
                     {meta ? <span className="text-[16px] text-ink-soft">{meta.replace(/^./, (x) => x.toUpperCase())}</span> : null}
@@ -122,7 +126,7 @@ export function AddPlant() {
         </ul>
       )}
       {!query && later ? <p className="rise px-8 pt-5 text-[16px] leading-normal text-ink-soft">{later.line}</p> : null}
-      {!climate && !query ? <p className="px-8 pt-6 text-[16px] text-ink-soft">Search for a plant. Once we know your climate, we&apos;ll suggest what to start now.</p> : null}
+      {!place && !query ? <p className="px-8 pt-6 text-[16px] text-ink-soft">Search for a plant. Once we know your climate, we&apos;ll suggest what to start now.</p> : null}
     </div>
   );
 }

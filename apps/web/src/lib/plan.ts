@@ -1,4 +1,4 @@
-import { almanacDay, CROPS, inWindows, windowsFor, type ClimateType, type Crop, type Window } from "@uchibatake/content";
+import { almanacDay, CROPS, inWindows, windowsFor, type Place, type Region, type Crop, type Window } from "@uchibatake/content";
 import type { SpaceType } from "./data/types";
 import { capitalise, dateWords, listWords } from "./words";
 
@@ -48,8 +48,8 @@ export const LIKES: Record<string, (c: Crop) => boolean> = {
 const liked = (c: Crop, likes: string[]) => likes.some((l) => LIKES[l]?.(c));
 
 /** How this crop could start in this space today, if it can. */
-export function startsNow(crop: Crop, space: PlanSpace, md: string, climate: ClimateType, hemisphere: 1 | -1): PlanItem["how"] | null {
-  const w = windowsFor(crop, climate, hemisphere);
+export function startsNow(crop: Crop, space: PlanSpace, md: string, place: Place): PlanItem["how"] | null {
+  const w = windowsFor(crop, place);
   const indoors = INDOORS.includes(space.type);
   if (indoors) {
     if (crop.start.scraps.ok && crop.start.scraps.why) return "scraps";
@@ -67,8 +67,8 @@ export function startsNow(crop: Crop, space: PlanSpace, md: string, climate: Cli
 
 const windowEnd = (ws: Window[] | undefined, md: string) => ws?.find((x) => inWindows(md, [x]))?.to;
 
-function describe(crop: Crop, how: PlanItem["how"], md: string, climate: ClimateType, hemisphere: 1 | -1): { title: string; line: string } {
-  const w = windowsFor(crop, climate, hemisphere);
+function describe(crop: Crop, how: PlanItem["how"], md: string, place: Place): { title: string; line: string } {
+  const w = windowsFor(crop, place);
   const name = crop.name.toLowerCase();
   const parts: string[] = [];
   let title: string;
@@ -93,17 +93,17 @@ function describe(crop: Crop, how: PlanItem["how"], md: string, climate: Climate
   return { title, line: parts.join(" ") };
 }
 
-export function firstSeason(opts: { spaces: PlanSpace[]; today: string; climate: ClimateType; hemisphere?: 1 | -1; likes?: string[] }): FirstSeason {
-  const { spaces, today, climate, hemisphere = 1, likes = [] } = opts;
+export function firstSeason(opts: { spaces: PlanSpace[]; today: string; place: Place; likes?: string[]; region?: Region | null }): FirstSeason {
+  const { spaces, today, place, likes = [], region = null } = opts;
   const md = today.slice(5);
   const used = new Set<string>();
   const items: PlanItem[] = [];
 
   const ranked = (space: PlanSpace) =>
     CROPS.filter((c) => c.sources.length && !used.has(c.id))
-      .map((c) => ({ c, how: startsNow(c, space, md, climate, hemisphere) }))
+      .map((c) => ({ c, how: startsNow(c, space, md, place) }))
       .filter((x): x is { c: Crop; how: PlanItem["how"] } => x.how !== null)
-      .sort((a, b) => EASE[a.c.difficulty ?? "unknown"] - EASE[b.c.difficulty ?? "unknown"] || Number(liked(b.c, likes)) - Number(liked(a.c, likes)) || a.c.name.localeCompare(b.c.name));
+      .sort((a, b) => EASE[a.c.difficulty ?? "unknown"] - EASE[b.c.difficulty ?? "unknown"] || Number(liked(b.c, likes)) - Number(liked(a.c, likes)) || Number(!!region && !!b.c.popularIn?.includes(region)) - Number(!!region && !!a.c.popularIn?.includes(region)) || a.c.name.localeCompare(b.c.name));
 
   // The most particular spaces choose first (indoors, then the ground, then pots),
   // so a crop that suits the garden isn't used up by the balcony. One per space, then fill up to three.
@@ -116,21 +116,21 @@ export function firstSeason(opts: { spaces: PlanSpace[]; today: string; climate:
       const best = ranked(space)[0];
       if (!best) continue;
       used.add(best.c.id);
-      items.push({ crop: best.c, space, how: best.how, ...describe(best.c, best.how, md, climate, hemisphere) });
+      items.push({ crop: best.c, space, how: best.how, ...describe(best.c, best.how, md, place) });
     }
   }
 
   // Favourites that can't start in any chosen space yet: the soonest next start date in the data.
   const daysUntil = (from: string) => (almanacDay(from) - almanacDay(md) + 366) % 366;
-  const waiting = CROPS.filter((c) => c.sources.length && liked(c, likes) && !used.has(c.id) && !spaces.some((s) => startsNow(c, s, md, climate, hemisphere)))
+  const waiting = CROPS.filter((c) => c.sources.length && liked(c, likes) && !used.has(c.id) && !spaces.some((s) => startsNow(c, s, md, place)))
     .map((c) => {
-      const w = windowsFor(c, climate, hemisphere);
+      const w = windowsFor(c, place);
       const starts = [...(w?.sow ?? []), ...(w?.plantOut ?? [])].map((x) => x.from).sort((x, y) => daysUntil(x) - daysUntil(y));
       return starts[0] ? { c, from: starts[0] } : null;
     })
     .filter((x): x is { c: Crop; from: string } => !!x)
     // Only promise a reminder for what could actually start in one of the chosen spaces then.
-    .filter((x) => spaces.some((s) => startsNow(x.c, s, x.from, climate, hemisphere)))
+    .filter((x) => spaces.some((s) => startsNow(x.c, s, x.from, place)))
     .sort((x, y) => daysUntil(x.from) - daysUntil(y.from) || x.c.name.localeCompare(y.c.name));
   let later: FirstSeason["later"] = null;
   if (waiting.length) {

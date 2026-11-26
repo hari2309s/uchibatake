@@ -1,5 +1,7 @@
 "use client";
 
+import type { Place } from "@uchibatake/content";
+import { placeOf } from "@/lib/place-climate";
 import { CROPS, cropById } from "@uchibatake/content";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -36,9 +38,9 @@ function Ring({ closed, size }: { closed: boolean; size: number }) {
 }
 
 /** Something easier to try next in the same spot, from the data (very easy or easy, can start now). */
-function nextFor(p: Planting, space: ReturnType<typeof useSpace>, md: string, temperate: boolean) {
-  if (!space || !temperate) return undefined;
-  return CROPS.filter((c) => c.sources.length && c.id !== p.crop_id && (c.difficulty === "very-easy" || c.difficulty === "easy")).find((c) => fitFor(c, space, md, "temperate").score === 2);
+function nextFor(p: Planting, space: ReturnType<typeof useSpace>, md: string, place: Place | null) {
+  if (!space || !place) return undefined;
+  return CROPS.filter((c) => c.sources.length && c.id !== p.crop_id && (c.difficulty === "very-easy" || c.difficulty === "easy")).find((c) => fitFor(c, space, md, place).score === 2);
 }
 
 /** M11: a plant didn't make it. A broken ensō, one honest line, what we learned, and something easier next. */
@@ -56,7 +58,7 @@ export function PlantLost({ id }: { id: string }) {
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
   if (!p || !today) return null;
   const name = plantName(p);
-  const next = nextFor(p, space, today.slice(5), household?.climate === "temperate");
+  const next = nextFor(p, space, today.slice(5), placeOf(household));
   const since = parseIsoDate(p.started_on).toLocaleDateString("en-GB", { month: "long" });
 
   return (

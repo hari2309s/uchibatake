@@ -1,5 +1,6 @@
 "use client";
 
+import { placeOf } from "@/lib/place-climate";
 import { BackBar } from "@/components/ui/bars";
 import { Seal } from "@/components/ui/seal";
 import { useHarvests, useHousehold, useJournal, usePlanting, useSpace } from "@/lib/data/hooks";
@@ -39,7 +40,7 @@ export function Timeline({ id }: { id: string }) {
     })),
     ...(harvests ?? []).filter((h) => !told.has(h.picked_on)).map((h) => ({ on: h.picked_on, seal: "収" as const, title: "Picked", sub: h.note ?? (h.unit === "g" ? `about ${h.amount} g` : `${h.amount}`) })),
   ].sort((a, b) => a.on.localeCompare(b.on));
-  const g = growthStatus(p, today, { indoors: isIndoors(space), climate: household?.climate ?? null });
+  const g = growthStatus(p, today, { indoors: isIndoors(space), place: placeOf(household) });
 
   return (
     <div className="pb-9">

@@ -1,4 +1,4 @@
-import { cropById, windowsFor } from "@uchibatake/content";
+import { cropById } from "@uchibatake/content";
 import type { FieldDB } from "./data/db";
 import { addTask, create, live, update } from "./data/repo";
 import type { Notice, Planting, Space } from "./data/types";
@@ -20,10 +20,11 @@ export const RAINED_MM = 5; // mm today: enough that outdoor pots don't need wat
 
 const OUTDOOR = (s: Space | undefined) => !!s && (s.type === "balcony" || s.type === "backyard");
 
-/** Tender: the crop's windows only open after mid-May (planted out after the last frosts), e.g. basil, tomatoes. */
+/** Tender: a warm-season crop, or one whose RHS dates only open after mid-May (planted out after the last frosts), e.g. basil, tomatoes. */
 function tender(cropId: string | null): boolean {
   const c = cropId ? cropById(cropId) : undefined;
-  const w = c ? windowsFor(c, "temperate") : undefined;
+  if (c?.timing) return c.timing.season === "warm";
+  const w = c?.windows.temperate;
   const starts = [...(w?.sow ?? []), ...(w?.plantOut ?? [])].map((x) => x.from);
   return starts.length > 0 && starts.every((s) => s >= "05-15" && s <= "07-31");
 }

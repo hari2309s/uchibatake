@@ -14,6 +14,8 @@ import { dateWords } from "./words";
 export interface PlaceName {
   name: string;
   detail: string | null;
+  /** ISO 3166 alpha-2, upper case. */
+  country: string | null;
 }
 
 /** Neighbourhood and town for a rough area. Null if the lookup fails. */
@@ -26,7 +28,7 @@ export async function nameArea(lat: number, lon: number, signal?: AbortSignal): 
   const town = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? null;
   const name = addr.suburb ?? addr.neighbourhood ?? addr.quarter ?? addr.city_district ?? town;
   if (!name) return null;
-  return { name, detail: [town !== name ? town : null, addr.country].filter(Boolean).join(", ") || null };
+  return { name, detail: [town !== name ? town : null, addr.country].filter(Boolean).join(", ") || null, country: addr.country_code?.toUpperCase() ?? null };
 }
 
 /** Weather words, as in the design's own weather code mapping. */

@@ -1,3 +1,4 @@
+import { EXTRA, MORE_CROPS } from "./more.ts";
 import type { Crop, Source, Window } from "./types.ts";
 
 /*
@@ -18,7 +19,7 @@ const COMPANIONS = "Companion pairs (goodWith / keepApart) are traditional lore 
 
 const NO_SCRAPS = { ok: false, why: "Not from scraps. Try green onions." };
 
-export const CROPS: Crop[] = [
+const BASE: Crop[] = [
   {
     id: "kale",
     name: "Kale",
@@ -610,7 +611,6 @@ export const CROPS: Crop[] = [
   // listed so search and the journal can name them, with no growing facts.
   ...(
     [
-      ["shiso", "Shiso", ["perilla"], "herb"],
       ["methi", "Methi", ["fenugreek"], "herb"],
     ] as const
   ).map(
@@ -625,4 +625,14 @@ export const CROPS: Crop[] = [
       unsure: ["everything: no source checked yet"],
     })
   ),
+];
+
+/** Every crop: the RHS ones with their timing, regions and extra sources, then the newer ones. */
+export const CROPS: Crop[] = [
+  ...BASE.map((c) => {
+    const x = EXTRA[c.id];
+    if (!x) return c;
+    return { ...c, timing: x.timing ?? c.timing, popularIn: x.popularIn, aka: [...(c.aka ?? []), ...(x.aka ?? [])], sources: [...c.sources, ...(x.sources ?? [])] };
+  }),
+  ...MORE_CROPS,
 ];

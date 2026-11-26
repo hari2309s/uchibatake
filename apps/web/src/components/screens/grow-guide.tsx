@@ -1,5 +1,7 @@
 "use client";
 
+import { placeOf } from "@/lib/place-climate";
+import { datesFrom } from "@uchibatake/content";
 import { cropById, neighbours, windowMonths, windowsFor } from "@uchibatake/content";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BackBar } from "@/components/ui/bars";
@@ -24,8 +26,10 @@ export function GrowGuide({ id }: { id: string }) {
   const today = useToday();
   if (!crop) return <BackBar href="/add" label="Add a plant" />;
   if (!today || !household) return null;
-  const climate = household.climate === "temperate" ? "temperate" : null;
-  const w = climate ? windowsFor(crop, climate) : undefined;
+  const cropPlace = placeOf(household);
+  const w = windowsFor(crop, cropPlace);
+  // Outside mild maritime places, the dates are worked out (crops/timing.ts), not copied from the RHS: say so.
+  const worked = datesFrom(crop, cropPlace) === "worked-out";
   const plantMonths = windowMonths([...(w?.sowIndoors ?? []), ...(w?.sow ?? []), ...(w?.plantOut ?? [])]);
   const harvestMonths = windowMonths(w?.harvest);
   const place = household.place || "here";
@@ -33,7 +37,7 @@ export function GrowGuide({ id }: { id: string }) {
   const start = w?.sow?.[0] ? { win: w.sow[0], verb: (crop.sowVerb ?? "Sow").toLowerCase() } : w?.plantOut?.[0] ? { win: w.plantOut[0], verb: "plant" } : w?.sowIndoors?.[0] ? { win: w.sowIndoors[0], verb: "sow indoors" } : null;
   const firstHarvest = w?.harvest?.find((x) => !(x.from === "01-01" && x.to === "12-31"));
   const caption = start
-    ? `The dot is now. In ${place}, ${start.verb} from ${dateWords(start.win.from)} to ${dateWords(start.win.to)}${firstHarvest ? `, and pick from ${dateWords(firstHarvest.from)}` : ""}.`
+    ? `The dot is now. In ${place}, ${start.verb} from ${dateWords(start.win.from)} to ${dateWords(start.win.to)}${firstHarvest ? `, and pick from ${dateWords(firstHarvest.from)}` : ""}.${worked ? " Worked out from your typical frost dates and temperatures, so give or take a week or two." : ""}`
     : undefined;
   const facts = (
     [
@@ -69,7 +73,7 @@ export function GrowGuide({ id }: { id: string }) {
           <MonthStrip plant={plantMonths} harvest={harvestMonths} now={Number(today.slice(5, 7)) - 1} caption={caption} plantLabel={crop.sowVerb ?? "Plant"} />
         </section>
       ) : (
-        <p className="px-8 pt-8 text-[16px] text-ink-soft">We don&apos;t have growing dates for {crop.name.toLowerCase()} {climate ? "yet" : "in your climate yet"}, so we won&apos;t guess.</p>
+        <p className="px-8 pt-8 text-[16px] text-ink-soft">We don&apos;t have growing dates for {crop.name.toLowerCase()} in your climate yet, so we won&apos;t guess.</p>
       )}
       {n.good.length || n.apart.length ? (
         <div className="rise flex flex-col px-8 pt-8" style={{ "--i": 3 } as React.CSSProperties}>

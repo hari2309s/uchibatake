@@ -1,4 +1,5 @@
 import type { ClimateType } from "../seasons/types.ts";
+import type { Timing } from "./timing.ts";
 
 /** A date range "MM-DD" to "MM-DD", inclusive; may wrap the year end. */
 export interface Window {
@@ -46,6 +47,8 @@ export interface HowTo {
 /** A neighbour: another crop in the catalogue, or a plant we don't carry (by name). */
 export type Neighbour = string | { name: string };
 
+export type Region = "eu" | "us" | "jp" | "kr";
+
 export interface Source {
   title: string;
   url: string;
@@ -68,7 +71,12 @@ export interface Crop {
   daysToFirstPick?: number;
   /** The verb for starting it, when "Sow" is wrong ("Plant the cloves of" → "Plant garlic"). */
   sowVerb?: string;
+  /** RHS dates for mild maritime places (key "temperate"). */
   windows: Partial<Record<ClimateType, ClimateWindows>>;
+  /** Frost- and temperature-relative timing, for everywhere else (crops/timing.ts). */
+  timing?: Timing;
+  /** Where families commonly grow it: ranks it first for them. */
+  popularIn?: Region[];
   goodWith?: Neighbour[];
   keepApart?: Neighbour[];
   kidTip?: string;

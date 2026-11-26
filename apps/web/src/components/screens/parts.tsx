@@ -1,5 +1,6 @@
 "use client";
 
+import { usePlace } from "@/lib/place-climate";
 import { cropById, microseasonFor, seasonFor, SEASON_TABLES } from "@uchibatake/content";
 import Link from "next/link";
 import { ViewTransition } from "react";
@@ -7,7 +8,6 @@ import { Enso } from "@/components/ui/enso";
 import { cn } from "@/components/ui/cn";
 import type { Household, Planting, Settings } from "@/lib/data/types";
 import { growthStatus } from "@/lib/growth";
-import { useHousehold } from "@/lib/data/hooks";
 
 export function plantName(p: Planting): string {
   return p.nickname ?? (p.crop_id ? (cropById(p.crop_id)?.name ?? p.own_name ?? "A plant") : (p.own_name ?? "A plant"));
@@ -16,11 +16,11 @@ export function plantName(p: Planting): string {
 /** The plant's ensō, named so it can glide into the plant page. */
 /** The household's climate, for crop windows (null until we know it: then we say less). */
 export function useClimate() {
-  return useHousehold()?.climate ?? null;
+  return usePlace();
 }
 
 export function PlantEnso({ p, today, size = 52, indoors = false }: { p: Planting; today: string; size?: number; indoors?: boolean }) {
-  const g = growthStatus(p, today, { indoors, climate: useClimate() });
+  const g = growthStatus(p, today, { indoors, place: useClimate() });
   return (
     <ViewTransition name={`enso-${p.id}`} share="enso-morph" default="none">
       <span className="block flex-none">
@@ -32,7 +32,7 @@ export function PlantEnso({ p, today, size = 52, indoors = false }: { p: Plantin
 
 /** Ensō + name + where it is in its season. */
 export function PlantCell({ p, today, compact = false, indoors = false, i = 0 }: { p: Planting; today: string; compact?: boolean; indoors?: boolean; i?: number }) {
-  const g = growthStatus(p, today, { indoors, climate: useClimate() });
+  const g = growthStatus(p, today, { indoors, place: useClimate() });
   return (
     <Link href={`/plants/${p.id}`} className={cn("rise tap flex items-center gap-3", compact ? "min-h-[52px]" : "min-h-16")} style={{ "--i": i } as React.CSSProperties}>
       <PlantEnso p={p} today={today} size={compact ? 52 : 44} indoors={indoors} />

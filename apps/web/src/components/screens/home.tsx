@@ -1,5 +1,7 @@
 "use client";
 
+import { regionOf } from "@uchibatake/content";
+import { placeOf } from "@/lib/place-climate";
 import Link from "next/link";
 import { TodayList } from "@/components/app/today-list";
 import { WeatherRow } from "./weather-row";
@@ -37,10 +39,10 @@ export function Home() {
 
   const growing = (plantings ?? []).filter((p) => p.status === "growing");
   const open = tasks?.filter((t) => !t.done_at).length ?? 0;
-  const tableFor = spaces ? recipeForThisWeek(plantings, spaces, today, household.climate, household.diet) : null;
+  const tableFor = spaces ? recipeForThisWeek(plantings, spaces, today, placeOf(household), household.diet, regionOf(household.country)) : null;
   const table = tableFor?.recipe ?? null;
   const ready = growing
-    .map((p) => ({ p, g: growthStatus(p, today, { indoors: isIndoors(spaces?.find((s) => s.id === p.space_id)), climate: household.climate }) }))
+    .map((p) => ({ p, g: growthStatus(p, today, { indoors: isIndoors(spaces?.find((s) => s.id === p.space_id)), place: placeOf(household) }) }))
     .filter((x) => x.g.readyInDays !== null && x.g.readyInDays <= 42)
     .sort((a, b) => a.g.readyInDays! - b.g.readyInDays!)
     .slice(0, 6);
@@ -119,8 +121,17 @@ export function Home() {
             <span className="text-[16px] text-ink-soft">Ready from your field: {listWords(tableFor!.ready)}.</span>
             {table.mottainai ? <span className="text-[16px] leading-[1.55] text-ink-soft">Mottainai: {table.mottainai.charAt(0).toLowerCase() + table.mottainai.slice(1)}</span> : null}
           </Link>
+          <Link href="/recipes" className="tap mt-2 inline-flex min-h-11 items-center text-[16px] font-medium underline underline-offset-4">
+            All recipes
+          </Link>
         </section>
-      ) : null}
+      ) : (
+        <div className="rise px-8 pt-9" style={{ "--i": 5 } as React.CSSProperties}>
+          <Link href="/recipes" className="tap inline-flex min-h-11 items-center text-[16px] font-medium underline underline-offset-4">
+            Recipes for what you grow
+          </Link>
+        </div>
+      )}
 
       {ready.length ? (
         <Section title="Ready soon" i={4}>

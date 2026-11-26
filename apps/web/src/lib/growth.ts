@@ -1,4 +1,4 @@
-import { almanacDay, cropById, inWindows, windowsFor, type ClimateType } from "@uchibatake/content";
+import { almanacDay, cropById, inWindows, windowsFor, type Place } from "@uchibatake/content";
 import { parseIsoDate } from "./dates";
 import type { Planting } from "./data/types";
 import { dateWords } from "./words";
@@ -30,8 +30,8 @@ const JUST: Record<Planting["start_method"], string> = { seed: "Just sown", plan
  * outside, so indoors we only use them when they're all-year (pea shoots);
  * otherwise we say less. Scraps regrow on their own clock: no window either.
  */
-export function growthStatus(p: Planting, today: string, opts: { indoors?: boolean; climate?: ClimateType | null; hemisphere?: 1 | -1 } = {}): GrowthStatus {
-  const { indoors = false, climate = "temperate", hemisphere = 1 } = opts;
+export function growthStatus(p: Planting, today: string, opts: { indoors?: boolean; place?: Place | null } = {}): GrowthStatus {
+  const { indoors = false, place = null } = opts;
   if (p.status === "ended") return { progress: 100, closed: true, label: "Done for the season", short: "Done", readyInDays: null };
   if (p.status === "lost") return { progress: 96, closed: false, label: "Didn't make it", short: "Lost", readyInDays: null };
   if (p.status === "planned") {
@@ -42,7 +42,7 @@ export function growthStatus(p: Planting, today: string, opts: { indoors?: boole
   const age = Math.max(0, daysBetween(p.started_on, today));
   const young = age < 14 && p.start_method !== "existing";
   const crop = p.crop_id ? cropById(p.crop_id) : undefined;
-  const all = crop && climate ? windowsFor(crop, climate, hemisphere)?.harvest : undefined;
+  const all = crop ? windowsFor(crop, place)?.harvest : undefined;
   const allYear = !!all?.some((w) => w.from === "01-01" && w.to === "12-31");
   const harvest = p.start_method === "scraps" || (indoors && !allYear) ? undefined : all;
 

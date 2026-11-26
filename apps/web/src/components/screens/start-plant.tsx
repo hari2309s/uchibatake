@@ -1,5 +1,6 @@
 "use client";
 
+import { placeOf } from "@/lib/place-climate";
 import { cropById, windowsFor } from "@uchibatake/content";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -104,8 +105,8 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
   }
 
   const md = today.slice(5);
-  const climate = household.climate === "temperate" ? ("temperate" as const) : null;
-  const ranked = rankSpaces(crop, spaces, md, climate);
+  const place = placeOf(household);
+  const ranked = rankSpaces(crop, spaces, md, place);
   const spaceId = choice.space ?? ranked.find((f) => f.score > 0)?.space.id;
   const space = spaces.find((s) => s.id === spaceId);
   const saturday = addDays(today, ((6 - parseIsoDate(today).getDay() + 7) % 7) || 7);
@@ -209,7 +210,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
   }
 
   // step === "steps": the first three steps, from the crop's own how-to or its care lines.
-  const w = climate ? windowsFor(crop, climate) : undefined;
+  const w = windowsFor(crop, place);
   const ready = w?.harvest?.find((x) => !(x.from === "01-01" && x.to === "12-31"));
   const howTo = crop.howTo?.[0]?.steps;
   const when = on === today ? "today" : `on ${weekday(on)}`;

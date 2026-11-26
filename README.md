@@ -27,7 +27,8 @@ on your phone; nothing needs an account to work.
 ![Web Push](https://img.shields.io/badge/Web_Push-daily_note-1F1C19)
 ![Groq](https://img.shields.io/badge/Groq_%2F_OpenRouter-plant_diagnosis-F55036)
 
-![Curated content](https://img.shields.io/badge/Crops-RHS--sourced-5A544C)
+![Curated content](https://img.shields.io/badge/Crops-RHS_·_UNH_·_Johnny's-5A544C)
+![Regions](https://img.shields.io/badge/For-EU_·_Japan_·_Korea_·_USA-1F1C19)
 ![72 microseasons](https://img.shields.io/badge/七十二候-72_microseasons-1F1C19)
 
 ![pnpm](https://img.shields.io/badge/pnpm-workspaces-F69220?logo=pnpm&logoColor=white)
@@ -63,7 +64,14 @@ on your phone; nothing needs an account to work.
 - **Rack, grow-light shelf, greenhouse** — tank and feeding, light hours, vents and the outside temperature.
 - **Something looks wrong?** — a photo and what you see; a free vision model picks only from each crop's curated
   problems (symptom rules without a key). Fixes gentlest first.
-- **For the table** — five family recipes keyed to what's ready, respecting the family's diets.
+- **Plants for where you live** — 37 crops, from kale and courgettes to shiso, napa cabbage and komatsuna. In
+  mild maritime places (UK, Netherlands, Pacific Northwest) dates are the RHS's; everywhere else they're worked
+  out from your own frost dates and 30-year temperatures (UNH Extension frost weeks, Purdue minimum
+  temperatures, Johnny's heat limits). Crops popular in your region (EU, Japan, Korea, USA) come first. Where
+  no source covers your climate, the app says so instead of guessing.
+- **For the table** — 30 family recipes (Dutch, Japanese, Korean, American and more), so nearly every crop
+  reaches the table: what's ready now, what's ready soon, dishes from where you live first, what children can
+  help with, and notes for vegetarian, vegan and gluten-free families.
 - **Install and offline** — add it to your home screen; visited pages work offline; a quiet "new version" strip.
 - **Notes** — a daily note and frost warnings, only after you allow them, never in quiet hours.
 - **Settings** — units, season lead, notes, privacy, "Export my field" (a ZIP of field.json and photos) and delete.
@@ -151,7 +159,8 @@ apps/web/              Next.js app (App Router)
   src/components/ui/   Washi & Sumi primitives (ensō, seals, notices, sheet, step view…)
   src/components/      screens, onboarding, auth
   src/lib/             data layer (Dexie repo, hooks, provider), weather, seasons, plans, rules
-packages/content/      curated, sourced content: crops (RHS), the 72 microseasons, local seasons
+packages/content/      curated, sourced content: crops (RHS, UNH, Johnny's) and their timing engine, recipes,
+                       the 72 microseasons, local seasons
 supabase/migrations/   sharing between phones: tables, row level security, invites, account deletion
 ```
 

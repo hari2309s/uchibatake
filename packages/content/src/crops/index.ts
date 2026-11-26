@@ -1,9 +1,10 @@
 import { almanacDay, MICROSEASONS } from "../microseasons.ts";
-import type { ClimateType } from "../seasons/types.ts";
 import { CROPS } from "./data.ts";
-import type { ClimateWindows, Crop, Neighbour, Window } from "./types.ts";
+import { computeWindows, isMaritime, type Place } from "./timing.ts";
+import type { ClimateWindows, Crop, Neighbour, Region, Window } from "./types.ts";
 
 export * from "./types.ts";
+export * from "./timing.ts";
 export { CROPS };
 
 const BY_ID = new Map(CROPS.map((c) => [c.id, c]));
@@ -13,7 +14,7 @@ export function cropById(id: string): Crop | undefined {
 }
 
 /** Search by name or other name: "pea" finds pea shoots, garden pea, sugar snap. */
-export function searchCrops(q: string): Crop[] {
+export function searchCrops(q: string, region: Region | null = null): Crop[] {
   const s = q.trim().toLowerCase();
   if (!s) return [];
   const score = (c: Crop) => {
@@ -26,7 +27,8 @@ export function searchCrops(q: string): Crop[] {
   };
   return CROPS.map((c) => [c, score(c)] as const)
     .filter(([, sc]) => sc < 9)
-    .sort((a, b) => a[1] - b[1] || a[0].name.localeCompare(b[0].name))
+    // How well it matches first; among equals, what's grown where the family lives.
+    .sort((a, b) => a[1] - b[1] || Number(!!region && !!b[0].popularIn?.includes(region)) - Number(!!region && !!a[0].popularIn?.includes(region)) || a[0].name.localeCompare(b[0].name))
     .map(([c]) => c);
 }
 
@@ -87,10 +89,34 @@ export function inWindows(md: string, windows: Window[] | undefined): boolean {
   });
 }
 
-/** The windows for a climate; southern temperate places use the northern dates shifted half a year. */
-export function windowsFor(crop: Crop, climate: ClimateType, hemisphere: 1 | -1 = 1): ClimateWindows | undefined {
-  // Only temperate dates are shifted; other climates say less until they have their own data.
-  if (climate !== "temperate" || hemisphere === 1) return crop.windows[climate];
+/**
+ * A crop's dates for a place: the RHS dates in mild maritime places (shifted
+ * half a year in the south), otherwise worked out from the place's own frost
+ * dates and temperatures (crops/timing.ts). Undefined: we don't know there.
+ */
+export function windowsFor(crop: Crop, place: Place | null): ClimateWindows | undefined {
+  const from = datesFrom(crop, place);
+  if (from === "indoors") return crop.windows.temperate;
+  if (from === "rhs") return rhsWindows(crop, place!.hemisphere);
+  if (from === "worked-out") return computeWindows(crop, place!.grow!);
+  return undefined;
+}
+
+/**
+ * Where a crop's dates come from for a place: all-year indoor dates (the same
+ * anywhere), the RHS (mild maritime places), worked out from the place's
+ * climate, or none (we don't know there).
+ */
+export function datesFrom(crop: Crop, place: Place | null): "indoors" | "rhs" | "worked-out" | null {
+  if (!place) return null;
+  const rhs = crop.windows.temperate;
+  if (rhs && !rhs.sow && !rhs.plantOut && rhs.sowIndoors?.some((x) => x.from === "01-01" && x.to === "12-31")) return "indoors";
+  if (isMaritime(place) && rhs) return "rhs";
+  return place.grow && crop.timing && computeWindows(crop, place.grow) ? "worked-out" : null;
+}
+
+function rhsWindows(crop: Crop, hemisphere: 1 | -1): ClimateWindows | undefined {
+  if (hemisphere === 1) return crop.windows.temperate;
   const base = crop.windows.temperate;
   if (!base) return undefined;
   const shift = (md: string) => {
@@ -102,4 +128,21 @@ export function windowsFor(crop: Crop, climate: ClimateType, hemisphere: 1 | -1 
   };
   const sh = (ws?: Window[]) => ws?.map((x) => ({ from: shift(x.from), to: shift(x.to) }));
   return { sowIndoors: sh(base.sowIndoors), sow: sh(base.sow), plantOut: sh(base.plantOut), harvest: sh(base.harvest) };
+}
+
+const EU = "AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE GB NO CH IS".split(" ");
+
+/** The region a country (ISO 3166 alpha-2) is in, for "popular here". */
+export function regionOf(country: string | null | undefined): Region | null {
+  const c = (country ?? "").toUpperCase();
+  if (c === "JP") return "jp";
+  if (c === "KR") return "kr";
+  if (c === "US") return "us";
+  return EU.includes(c) ? "eu" : null;
+}
+
+/** Crops commonly grown in the region first (stable otherwise). */
+export function byRegion<T extends Crop>(crops: T[], region: Region | null): T[] {
+  if (!region) return crops;
+  return [...crops].sort((a, b) => Number(!!b.popularIn?.includes(region)) - Number(!!a.popularIn?.includes(region)));
 }

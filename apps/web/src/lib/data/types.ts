@@ -1,4 +1,4 @@
-import type { ClimateType, SeasonTable } from "@uchibatake/content";
+import type { ClimateType, GrowClimate, SeasonTable } from "@uchibatake/content";
 
 /*
  * Rows in the on-device database. Every synced row carries the same
@@ -37,6 +37,10 @@ export interface Household extends Row {
   season_table: string | null;
   /** Seasons computed from this place's normals, when there's no shipped table. */
   seasons?: SeasonTable | null;
+  /** Typical frost dates and monthly temperatures: crops' dates are worked out from them. */
+  grow?: GrowClimate | null;
+  /** ISO 3166 alpha-2 country ("NL"): which crops are popular here. */
+  country?: string | null;
   /** "YYYY-MM-DD" the family started. */
   since: string;
   /** From onboarding (A 05, A 06). */

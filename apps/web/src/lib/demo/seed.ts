@@ -67,6 +67,15 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
     area: { lat: 52.35, lon: 4.89 },
     climate: "temperate",
     season_table: "amsterdam",
+    // De Pijp's typical frost dates and monthly temperatures (Open-Meteo archive, 1991–2020).
+    grow: {
+      lastFrost: "03-25",
+      firstFrost: "11-26",
+      meanTemp: [3.7, 3.9, 6.1, 9.3, 12.8, 15.5, 17.8, 17.7, 15.1, 11.4, 7.4, 4.5],
+      meanMin: [1.7, 1.6, 3.2, 5.7, 9.3, 12.2, 14.5, 14.6, 12.2, 9, 5.4, 2.6],
+      meanMax: [5.7, 6.4, 9.1, 12.9, 16.2, 18.7, 20.9, 20.9, 18, 13.9, 9.5, 6.4],
+    },
+    country: "NL",
     since: d("06-01"),
     people_count: 6,
     likes: ["tomatoes", "herbs", "greens"],

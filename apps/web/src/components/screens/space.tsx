@@ -1,5 +1,7 @@
 "use client";
 
+import { byRegion, regionOf, type Place, type Region } from "@uchibatake/content";
+import { placeOf } from "@/lib/place-climate";
 import { cropById, CROPS, type Crop } from "@uchibatake/content";
 import Link from "next/link";
 import { BackBar } from "@/components/ui/bars";
@@ -22,9 +24,9 @@ function Fact({ k, v }: { k: string; v: string }) {
 }
 
 /** What could start in this space on a given day, from the crop data. */
-function goodFor(space: Space, md: string): Crop[] {
+function goodFor(space: Space, md: string, place: Place, region: Region | null): Crop[] {
   const s = { key: space.id, type: space.type, name: space.name };
-  return CROPS.filter((c) => c.sources.length && startsNow(c, s, md, "temperate", 1) !== null).slice(0, 4);
+  return byRegion(CROPS, region).filter((c) => c.sources.length && startsNow(c, s, md, place) !== null).slice(0, 4);
 }
 
 /** The ink-line plan seen from above (01): house wall thick, railing double, pots as drawn. Tap a pot. */
@@ -81,10 +83,13 @@ export function SpaceDetail({ id }: { id: string }) {
   // A greenhouse's heating and vents are in its own panel (S04); facing, size and sun stay here.
   if (space.ground) facts.push(["Ground", space.ground]);
 
-  // Good for: now, and the next two seasons, from the crop windows (temperate data only).
-  const now = household?.climate === "temperate" ? goodFor(space, today.slice(5)) : [];
-  const spring = household?.climate === "temperate" ? goodFor(space, "04-15") : [];
-  const summer = household?.climate === "temperate" ? goodFor(space, "06-15") : [];
+  // Good for: now, and the next two seasons, from the crop dates for this place (spring and summer flip in the south).
+  const place = placeOf(household);
+  const region = regionOf(household?.country);
+  const south = place?.hemisphere === -1;
+  const now = place ? goodFor(space, today.slice(5), place, region) : [];
+  const spring = place ? goodFor(space, south ? "10-15" : "04-15", place, region) : [];
+  const summer = place ? goodFor(space, south ? "12-15" : "06-15", place, region) : [];
 
   return (
     <div className="pb-6">

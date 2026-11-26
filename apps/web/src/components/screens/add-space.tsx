@@ -1,5 +1,7 @@
 "use client";
 
+import { byRegion, regionOf } from "@uchibatake/content";
+import { placeOf } from "@/lib/place-climate";
 import { CROPS } from "@uchibatake/content";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -90,6 +92,8 @@ export function AddSpace() {
   const router = useRouter();
   const { db } = useData();
   const household = useHousehold();
+  const place = placeOf(household);
+  const region = regionOf(household?.country);
   const spaces = useSpaces();
   const today = useToday();
   const [step, setStep] = useState<Step>("type");
@@ -134,7 +138,7 @@ export function AddSpace() {
 
   if (step === "done" && made && today) {
     const md = today.slice(5);
-    const goodNow = household?.climate === "temperate" ? CROPS.filter((c) => c.sources.length && startsNow(c, { key: made.id, type: made.type, name: made.name }, md, "temperate", 1)).slice(0, 3) : [];
+    const goodNow = place ? byRegion(CROPS, region).filter((c) => c.sources.length && startsNow(c, { key: made.id, type: made.type, name: made.name }, md, place)).slice(0, 3) : [];
     return (
       <div className="flex min-h-[calc(100dvh-120px)] flex-col">
         <div className="flex justify-center pt-[60px]">

@@ -1,5 +1,7 @@
 "use client";
 
+import { growOf } from "@/lib/onboarding";
+import { isMaritime, regionOf, type Place as CropPlace } from "@uchibatake/content";
 import { AMSTERDAM, seasonFor, seasonsFromNormals } from "@uchibatake/content";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -284,7 +286,7 @@ function LocationStep({ draft, change, next }: { draft: Draft; change: (p: Parti
         const area = roughArea(pos.coords.latitude, pos.coords.longitude);
         // Name the rough area (OpenStreetMap). If that fails, keep the place and let them name it.
         const named = await nameArea(area.lat, area.lon).catch(() => null);
-        change({ place: { name: named?.name ?? "", detail: named?.detail ?? null, ...area, found: "location", climate: null } });
+        change({ place: { name: named?.name ?? "", detail: named?.detail ?? null, country: named?.country ?? null, ...area, found: "location", climate: null } });
         setLocating(false);
       },
       () => {
@@ -402,13 +404,15 @@ function FirstSeasonView({ draft, today, onBegin }: { draft: Draft; today: strin
   const area = draft.place ? { lat: draft.place.lat, lon: draft.place.lon } : null;
   const table = area ? seasonTableFor(area) : null;
   const summary = draft.place?.climate ?? null;
-  // Crop windows are written for temperate climates; elsewhere we don't guess.
-  const climate = table ? ("temperate" as const) : (summary?.type ?? null);
+  // Crop dates come from this place's frost dates and temperatures (maritime places: the RHS dates).
+  const climateType = table ? ("temperate" as const) : (summary?.type ?? null);
+  const lat = draft.place?.lat;
+  const place = useMemo<CropPlace | null>(() => (climateType && lat !== undefined ? { climate: climateType, hemisphere: lat < 0 ? -1 : 1, grow: summary ? growOf(summary) : null } : null), [climateType, lat, summary]);
   const seasons = table ? AMSTERDAM : summary ? seasonsFromNormals(summary.normals, draft.place?.name || "here") : null;
   const plan = useMemo(() => {
     const spaces = draft.where.map((type) => ({ key: type, type, name: SPACE_NAMES[type] }));
-    return climate ? firstSeason({ spaces, today, climate, likes: draft.likes }) : { items: [], later: null };
-  }, [climate, draft.where, today, draft.likes]);
+    return place ? firstSeason({ spaces, today, place, likes: draft.likes, region: regionOf(draft.place?.country) }) : { items: [], later: null };
+  }, [place, draft.where, today, draft.likes, draft.place?.country]);
   const eyebrow = [seasons ? seasonFor(seasons, today.slice(5)).season.name : null, draft.place?.name || null, draft.people > 1 ? `${numberWord(draft.people)} of us` : "just me"].filter(Boolean).join(" · ");
 
   const begin = async () => {
@@ -449,9 +453,9 @@ function FirstSeasonView({ draft, today, onBegin }: { draft: Draft; today: strin
               ? "Add a space when you're ready, and we'll suggest what to grow there."
               : !draft.place
                 ? "Tell us where you are, and we'll suggest a few gentle plants that suit your weather."
-                : !climate
+                : !place
                   ? "We're still reading your climate. Your first suggestions will follow."
-                  : climate !== "temperate"
+                  : !place.grow && !isMaritime(place)
                     ? "We don't have growing dates for your climate yet, so we won't guess."
                     : "Nothing we'd start in your spaces right now. We'll suggest something as the season turns."}
         </p>

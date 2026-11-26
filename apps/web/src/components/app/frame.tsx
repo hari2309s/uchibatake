@@ -13,6 +13,7 @@ import { ForecastProvider } from "@/lib/forecast-context";
 import { AppHeader } from "./header";
 import { Notifier } from "./notifier";
 import { Sharer } from "./sharer";
+import { ClimateBackfill } from "./climate-backfill";
 import { Redirect } from "./redirect";
 
 function useRemembered(): RememberedAccount | null {
@@ -81,6 +82,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
       <SaveFieldSheet />
       <Notifier />
       <Sharer />
+      <ClimateBackfill />
     </Column>
     </ForecastProvider>
   );

@@ -1,18 +1,19 @@
 "use client";
 
-import { cropById, inWindows, windowsFor, type ClimateType } from "@uchibatake/content";
+import { usePlace } from "@/lib/place-climate";
+import { cropById, inWindows, windowsFor, type Place } from "@uchibatake/content";
 import { useState } from "react";
 import { BackBar } from "@/components/ui/bars";
 import { AddSeedSheet } from "./sheets";
 import { Seal } from "@/components/ui/seal";
-import { useHousehold, useMembers, useSeeds } from "@/lib/data/hooks";
+import { useMembers, useSeeds } from "@/lib/data/hooks";
 import type { Seed } from "@/lib/data/types";
 import { useToday } from "@/lib/use-today";
 
 /** Can this packet go in now? From the crop's windows for this climate; none known, no claim. */
-function sowNow(seed: Seed, md: string, climate: ClimateType | null): boolean {
+function sowNow(seed: Seed, md: string, place: Place | null): boolean {
   const crop = seed.crop_id ? cropById(seed.crop_id) : undefined;
-  const w = crop && climate ? windowsFor(crop, climate) : undefined;
+  const w = crop ? windowsFor(crop, place) : undefined;
   return !!w && (inWindows(md, w.sow) || inWindows(md, w.sowIndoors) || inWindows(md, w.plantOut));
 }
 
@@ -37,7 +38,7 @@ function Envelope({ seed, line, saved, i }: { seed: Seed; line: string; saved: s
 export function SeedBox() {
   const seeds = useSeeds();
   const [adding, setAdding] = useState(false);
-  const climate = useHousehold()?.climate ?? null;
+  const climate = usePlace();
   const members = useMembers();
   const today = useToday();
   if (!seeds || !today) return null;

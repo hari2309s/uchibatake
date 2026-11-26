@@ -14,6 +14,8 @@ const SPACES = [
   { key: "balcony", type: "balcony" as const, name: "Balcony" },
 ];
 
+const NL = { climate: "temperate", hemisphere: 1, grow: null } as const;
+
 test("words: numbers, dates, lists", () => {
   assert.equal(numberWord(6), "six");
   assert.equal(numberWord(23), "23");
@@ -33,7 +35,7 @@ test("place: rough area is ~1 km, Amsterdam gets its own seasons", () => {
 });
 
 test("first season on 23 November in Amsterdam: three gentle plants, one per space, from the data", () => {
-  const plan = firstSeason({ spaces: SPACES, today: "2026-11-23", climate: "temperate", likes: ["tomatoes", "herbs"] });
+  const plan = firstSeason({ spaces: SPACES, today: "2026-11-23", place: NL, likes: ["tomatoes", "herbs"] });
   assert.equal(plan.items.length, 3);
   assert.deepEqual(new Set(plan.items.map((i) => i.space.key)).size, 3, "one per space");
   const garden = plan.items.find((i) => i.space.key === "garden")!;
@@ -48,7 +50,7 @@ test("first season on 23 November in Amsterdam: three gentle plants, one per spa
 });
 
 test("first season: favourites that wait say when, from the data", () => {
-  const plan = firstSeason({ spaces: SPACES, today: "2026-11-23", climate: "temperate", likes: ["tomatoes"] });
+  const plan = firstSeason({ spaces: SPACES, today: "2026-11-23", place: NL, likes: ["tomatoes"] });
   assert.ok(plan.later);
   assert.equal(plan.later!.crops[0].id, "tomatoes");
   assert.equal(plan.later!.from, "05-21");
@@ -56,14 +58,14 @@ test("first season: favourites that wait say when, from the data", () => {
 });
 
 test("first season: a windowsill alone in July still gets something; no spaces, no plan", () => {
-  const sill = firstSeason({ spaces: [SPACES[0]], today: "2026-07-16", climate: "temperate" });
+  const sill = firstSeason({ spaces: [SPACES[0]], today: "2026-07-16", place: NL });
   assert.ok(sill.items.length >= 1);
   assert.ok(sill.items.every((i) => i.space.key === "sill"));
-  assert.equal(firstSeason({ spaces: [], today: "2026-07-16", climate: "temperate" }).items.length, 0);
+  assert.equal(firstSeason({ spaces: [], today: "2026-07-16", place: NL }).items.length, 0);
 });
 
 test("first season: a climate with no data says less (no suggestions it can't back up)", () => {
-  const plan = firstSeason({ spaces: [SPACES[1]], today: "2026-11-23", climate: "arid" });
+  const plan = firstSeason({ spaces: [SPACES[1]], today: "2026-11-23", place: { climate: "arid", hemisphere: 1, grow: null } });
   assert.equal(plan.items.length, 0);
 });
 
@@ -105,7 +107,7 @@ test("guest → account: joining an existing field re-homes rows and maps the gu
 });
 
 test("first season: no 'we'll remind you' for a favourite the chosen spaces can't grow", () => {
-  const plan = firstSeason({ spaces: [SPACES[0]], today: "2026-11-23", climate: "temperate", likes: ["tomatoes"] });
+  const plan = firstSeason({ spaces: [SPACES[0]], today: "2026-11-23", place: NL, likes: ["tomatoes"] });
   assert.equal(plan.later, null, "tomatoes don't grow on a windowsill in our data");
 });
 
@@ -135,32 +137,32 @@ test("guest → existing account: same-kind spaces merge, rule jobs aren't doubl
 test("growth: ready in the harvest window, just sown when young, 'ready from' otherwise", async () => {
   const { growthStatus, readyWords } = await import("../src/lib/growth.ts");
   const base = { id: "p", household_id: "h", created_at: 0, updated_at: 0, deleted_at: null, dirty: 0 as const, own_name: null, nickname: null, space_id: "s", status: "growing" as const, ended_on: null, lost_cause: null, quantity_note: null };
-  const kale = growthStatus({ ...base, crop_id: "kale", start_method: "plant", started_on: "2026-09-10" }, "2026-11-23");
+  const kale = growthStatus({ ...base, crop_id: "kale", start_method: "plant", started_on: "2026-09-10" }, "2026-11-23", { place: NL });
   // A bought plant in its picking season: true, but we don't know how far along it is.
   assert.equal(kale.label, "In its picking season");
   assert.equal(kale.readyInDays, null);
-  const beans = growthStatus({ ...base, crop_id: "broad-beans", start_method: "seed", started_on: "2026-11-14" }, "2026-11-23");
+  const beans = growthStatus({ ...base, crop_id: "broad-beans", start_method: "seed", started_on: "2026-11-14" }, "2026-11-23", { place: NL });
   assert.equal(beans.label, "Just sown");
-  const garlic = growthStatus({ ...base, crop_id: "garlic", start_method: "seed", started_on: "2026-10-25" }, "2026-11-23");
+  const garlic = growthStatus({ ...base, crop_id: "garlic", start_method: "seed", started_on: "2026-10-25" }, "2026-11-23", { place: NL });
   assert.equal(garlic.label, "Ready from late May");
   assert.ok(garlic.progress > 8 && garlic.progress < 30, String(garlic.progress));
-  const shoots = growthStatus({ ...base, crop_id: "pea-shoots", start_method: "seed", started_on: "2026-11-20" }, "2026-11-23");
+  const shoots = growthStatus({ ...base, crop_id: "pea-shoots", start_method: "seed", started_on: "2026-11-20" }, "2026-11-23", { place: NL });
   assert.equal(shoots.label, "Just sown", "all-year harvest still needs time to grow");
   assert.equal(shoots.readyInDays, 18, "RHS: 3 weeks from sowing");
   // Sown spinach isn't ready two weeks in, even inside its window (RHS: about a month).
-  const spinach = growthStatus({ ...base, crop_id: "spinach", start_method: "seed", started_on: "2026-10-01" }, "2026-10-16");
+  const spinach = growthStatus({ ...base, crop_id: "spinach", start_method: "seed", started_on: "2026-10-01" }, "2026-10-16", { place: NL });
   assert.notEqual(spinach.label, "Ready to pick");
   assert.equal(spinach.readyInDays, 15);
-  assert.equal(growthStatus({ ...base, crop_id: "spinach", start_method: "seed", started_on: "2026-10-01" }, "2026-11-02").label, "Ready to pick");
+  assert.equal(growthStatus({ ...base, crop_id: "spinach", start_method: "seed", started_on: "2026-10-01" }, "2026-11-02", { place: NL }).label, "Ready to pick");
   // Without a climate we say less.
-  assert.equal(growthStatus({ ...base, crop_id: "garlic", start_method: "seed", started_on: "2026-10-25" }, "2026-11-23", { climate: null }).label, "Growing");
-  const own = growthStatus({ ...base, crop_id: null, start_method: "plant", started_on: "2026-10-01" }, "2026-11-23");
+  assert.equal(growthStatus({ ...base, crop_id: "garlic", start_method: "seed", started_on: "2026-10-25" }, "2026-11-23", { place: null }).label, "Growing");
+  const own = growthStatus({ ...base, crop_id: null, start_method: "plant", started_on: "2026-10-01" }, "2026-11-23", { place: NL });
   assert.equal(own.label, "Growing");
   assert.equal(own.readyInDays, null, "no window, no claim");
   // Indoors, outdoor windows don't apply: say less. Scraps regrow on their own clock.
-  assert.equal(growthStatus({ ...base, crop_id: "basil", start_method: "plant", started_on: "2026-05-20" }, "2026-11-23", { indoors: true }).label, "Growing");
-  assert.equal(growthStatus({ ...base, crop_id: "green-onions", start_method: "scraps", started_on: "2026-11-02" }, "2026-11-23").readyInDays, null);
-  assert.equal(growthStatus({ ...base, crop_id: "pea-shoots", start_method: "seed", started_on: "2026-10-20" }, "2026-11-23", { indoors: true }).label, "Ready to pick");
+  assert.equal(growthStatus({ ...base, crop_id: "basil", start_method: "plant", started_on: "2026-05-20" }, "2026-11-23", { indoors: true, place: NL }).label, "Growing");
+  assert.equal(growthStatus({ ...base, crop_id: "green-onions", start_method: "scraps", started_on: "2026-11-02" }, "2026-11-23", { place: NL }).readyInDays, null);
+  assert.equal(growthStatus({ ...base, crop_id: "pea-shoots", start_method: "seed", started_on: "2026-10-20" }, "2026-11-23", { indoors: true, place: NL }).label, "Ready to pick");
   assert.equal(garlic.short, "Ready late May");
   assert.equal(readyWords(0), "now");
   assert.equal(readyWords(10), "in about 10 days");

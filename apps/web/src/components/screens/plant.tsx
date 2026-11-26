@@ -1,5 +1,6 @@
 "use client";
 
+import { placeOf } from "@/lib/place-climate";
 import { cropById } from "@uchibatake/content";
 import Link from "next/link";
 import { useState, ViewTransition } from "react";
@@ -31,7 +32,7 @@ export function PlantDetail({ id }: { id: string }) {
   if (!p || !today) return null;
 
   const crop = p.crop_id ? cropById(p.crop_id) : undefined;
-  const g = growthStatus(p, today, { indoors: isIndoors(space), climate: household?.climate ?? null });
+  const g = growthStatus(p, today, { indoors: isIndoors(space), place: placeOf(household) });
   const name = plantName(p);
   const since = parseIsoDate(p.started_on).toLocaleDateString("en-GB", { month: "long" });
   const centre =

@@ -1,5 +1,6 @@
 "use client";
 
+import { placeOf } from "@/lib/place-climate";
 import { cropById } from "@uchibatake/content";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,8 +32,7 @@ export function EditPlant({ id }: { id: string }) {
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
   if (!p || !spaces || !today) return null;
   const crop = p.crop_id ? cropById(p.crop_id) : undefined;
-  const climate = household?.climate === "temperate" ? ("temperate" as const) : null;
-  const ranked = crop ? rankSpaces(crop, spaces, today.slice(5), climate) : spaces.map((s) => ({ space: s, score: 1 as const, reason: "" }));
+  const ranked = crop ? rankSpaces(crop, spaces, today.slice(5), placeOf(household)) : spaces.map((s) => ({ space: s, score: 1 as const, reason: "" }));
   const value = { name: name ?? p.nickname ?? plantName(p), space: space ?? p.space_id, started: started ?? p.started_on };
 
   const save = async () => {

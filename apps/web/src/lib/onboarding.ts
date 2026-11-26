@@ -1,7 +1,7 @@
 import type { FieldDB } from "./data/db";
 import { addTask, create, householdId, live, update } from "./data/repo";
 import type { Household, Space, SpaceType } from "./data/types";
-import { seasonsFromNormals } from "@uchibatake/content";
+import { seasonsFromNormals, type GrowClimate } from "@uchibatake/content";
 import type { ClimateSummary } from "./climate";
 import type { FirstSeason } from "./plan";
 import { seasonTableFor } from "./place";
@@ -15,6 +15,7 @@ export interface Answers {
     lat: number;
     lon: number;
     found: "location" | "search";
+    country?: string | null;
     /** From 30 years of history, once fetched (01 Location's climate card). */
     climate?: ClimateSummary | null;
   } | null;
@@ -36,6 +37,10 @@ export const spaceKey = (householdId: string, type: SpaceType) => `${householdId
  * filling it in, a job for each plant in the first-season plan, and a
  * reminder for the favourites that come later. Safe to run twice.
  */
+export function growOf(s: ClimateSummary): GrowClimate {
+  return { lastFrost: s.lastFrost, firstFrost: s.firstFrost, meanTemp: s.normals.meanTemp, meanMin: s.normals.meanMin, meanMax: s.normals.meanMax };
+}
+
 export async function finishOnboarding(db: FieldDB, a: Answers, plan: FirstSeason, today: string): Promise<void> {
   const hid = await householdId(db);
   const area = a.place ? { lat: a.place.lat, lon: a.place.lon } : null;
@@ -53,6 +58,9 @@ export async function finishOnboarding(db: FieldDB, a: Answers, plan: FirstSeaso
     season_table: seasonTable,
     seasons,
     climate: seasonTable ? "temperate" : (summary?.type ?? null),
+    // Frost dates and temperatures: each crop's dates are worked out from them.
+    grow: summary ? growOf(summary) : null,
+    country: a.place?.country ?? null,
     people_count: a.people,
     likes: a.likes,
     diet: a.diet,

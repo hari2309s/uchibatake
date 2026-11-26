@@ -3,6 +3,8 @@ import { clashes, CROPS, cropById, inWindows, neighbours, searchCrops, windowMic
 
 const MD = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
+const NORTH = { climate: "temperate", hemisphere: 1, grow: null } as const;
+
 test("crop ids are unique", () => {
   assert.equal(new Set(CROPS.map((c) => c.id)).size, CROPS.length);
 });
@@ -39,7 +41,7 @@ test("garlic and broad beans don't get on (the 03b companion ひとこと)", () 
 });
 
 test("garlic's month strip: plant Oct–Dec, harvest May–Jul", () => {
-  const g = windowsFor(cropById("garlic")!, "temperate")!;
+  const g = windowsFor(cropById("garlic")!, NORTH)!;
   assert.deepEqual(windowMonths(g.sow), [9, 10, 11]);
   assert.deepEqual(windowMonths(g.harvest), [4, 5, 6]);
   assert.ok(inWindows("11-23", g.sow), "garlic can go in on 23 November");
@@ -47,7 +49,7 @@ test("garlic's month strip: plant Oct–Dec, harvest May–Jul", () => {
 });
 
 test("windows across the year end", () => {
-  const kale = windowsFor(cropById("kale")!, "temperate")!;
+  const kale = windowsFor(cropById("kale")!, NORTH)!;
   assert.deepEqual(windowMonths(kale.harvest), [0, 1, 2, 3, 8, 9, 10, 11]);
   assert.ok(inWindows("01-10", kale.harvest));
   const ms = windowMicroseasons(kale.harvest);
@@ -55,9 +57,9 @@ test("windows across the year end", () => {
 });
 
 test("southern temperate places get the dates half a year on; other climates say less", () => {
-  const south = windowsFor(cropById("garlic")!, "temperate", -1)!;
+  const south = windowsFor(cropById("garlic")!, { climate: "temperate", hemisphere: -1, grow: null })!;
   assert.deepEqual(windowMonths(south.sow), [3, 4, 5]);
-  assert.equal(windowsFor(cropById("garlic")!, "arid"), undefined);
+  assert.equal(windowsFor(cropById("garlic")!, { climate: "arid", hemisphere: 1, grow: null }), undefined);
 });
 
 test("search: 'pea' finds pea shoots, garden pea and sugar snap; other names work", () => {

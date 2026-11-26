@@ -1,4 +1,4 @@
-import { inWindows, windowsFor, type ClimateType, type Crop } from "@uchibatake/content";
+import { inWindows, windowsFor, type Place, type Crop } from "@uchibatake/content";
 import type { Facing, Space } from "./data/types";
 import { startsNow } from "./plan";
 import { FACING_WORDS } from "./space-words";
@@ -18,10 +18,10 @@ export interface Fit {
 
 const INDOOR = (s: Space) => s.type === "windowsill" || s.type === "rack";
 
-export function fitFor(crop: Crop, space: Space, md: string, climate: ClimateType | null): Fit {
+export function fitFor(crop: Crop, space: Space, md: string, place: Place | null): Fit {
   const name = crop.name.toLowerCase();
   const asPlanSpace = { key: space.id, type: space.type, name: space.name };
-  const now = climate ? startsNow(crop, asPlanSpace, md, climate, 1) : null;
+  const now = place ? startsNow(crop, asPlanSpace, md, place) : null;
   const facing = space.facing ? FACING_WORDS[space.facing] : null;
 
   if (INDOOR(space)) {
@@ -40,13 +40,13 @@ export function fitFor(crop: Crop, space: Space, md: string, climate: ClimateTyp
 }
 
 /** Spaces ranked for a crop: best first, the ones that don't suit last (shown greyed, with the reason). */
-export function rankSpaces(crop: Crop, spaces: Space[], md: string, climate: ClimateType | null): Fit[] {
-  return spaces.map((s) => fitFor(crop, s, md, climate)).sort((a, b) => b.score - a.score || a.space.sort - b.space.sort);
+export function rankSpaces(crop: Crop, spaces: Space[], md: string, place: Place | null): Fit[] {
+  return spaces.map((s) => fitFor(crop, s, md, place)).sort((a, b) => b.score - a.score || a.space.sort - b.space.sort);
 }
 
 /** Is this crop's starting season open now (anywhere)? */
-export function seasonOpen(crop: Crop, md: string, climate: ClimateType | null): boolean {
-  const w = climate ? windowsFor(crop, climate) : undefined;
+export function seasonOpen(crop: Crop, md: string, place: Place | null): boolean {
+  const w = windowsFor(crop, place);
   return !!w && [w.sow, w.sowIndoors, w.plantOut].some((ws) => inWindows(md, ws));
 }
 

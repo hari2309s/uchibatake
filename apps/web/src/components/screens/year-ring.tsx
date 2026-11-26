@@ -1,5 +1,6 @@
 "use client";
 
+import { placeOf } from "@/lib/place-climate";
 import { almanacDay, cropById, MICROSEASONS, microseasonEnd, microseasonFor, SEASON_TABLES, SOLAR_TERMS, windowMicroseasons, windowsFor, type SeasonTable } from "@uchibatake/content";
 import { useState } from "react";
 import { useHousehold, usePlantings } from "@/lib/data/hooks";
@@ -37,15 +38,15 @@ export function GrowingYear() {
   const now = microseasonFor(today.slice(5)).index;
   const i = sel ?? now;
   const table: SeasonTable | undefined = (household.season_table ? SEASON_TABLES[household.season_table] : undefined) ?? household.seasons ?? undefined;
-  const climate = household.climate === "temperate" ? ("temperate" as const) : null;
+  const place = placeOf(household);
 
   // Sow and harvest dots from what this family grows (and grew this year).
   const crops = [...new Set(plantings.filter((p) => p.crop_id && p.status === "growing").map((p) => p.crop_id!))].map((id) => cropById(id)!).filter(Boolean);
   const sow: string[][] = Array.from({ length: 72 }, () => []);
   const pick: string[][] = Array.from({ length: 72 }, () => []);
-  if (climate)
+  if (place)
     for (const c of crops) {
-      const w = windowsFor(c, climate);
+      const w = windowsFor(c, place);
       for (const k of windowMicroseasons([...(w?.sow ?? []), ...(w?.sowIndoors ?? []), ...(w?.plantOut ?? [])])) sow[k].push(c.name);
       for (const k of windowMicroseasons(w?.harvest)) pick[k].push(c.name);
     }

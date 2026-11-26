@@ -10,6 +10,8 @@ export interface Place {
   detail: string | null;
   lat: number;
   lon: number;
+  /** ISO 3166 alpha-2 ("NL", "JP"), when known: which crops are popular here. */
+  country?: string | null;
 }
 
 export const roundCoord = (x: number) => Math.round(x * 100) / 100;
@@ -40,6 +42,7 @@ interface GeoResult {
   longitude: number;
   admin1?: string;
   country?: string;
+  country_code?: string;
 }
 
 /** Town search (Open-Meteo geocoding: free, no key; only the typed text is sent). */
@@ -53,6 +56,7 @@ export async function searchPlaces(q: string, signal?: AbortSignal): Promise<Pla
   return (json.results ?? []).map((r) => ({
     name: r.name,
     detail: [r.admin1, r.country].filter(Boolean).join(", ") || null,
+    country: r.country_code?.toUpperCase() ?? null,
     ...roughArea(r.latitude, r.longitude),
   }));
 }
