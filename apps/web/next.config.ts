@@ -7,6 +7,10 @@ import type { NextConfig } from "next";
 loadEnvConfig(path.resolve(process.cwd(), "../.."), process.env.NODE_ENV !== "production", undefined, true);
 
 const nextConfig: NextConfig = {
+  // The field lives on the phone (IndexedDB): screens fill in in the browser once the session is known, so the
+  // server has nothing to render for them and the dev "instant navigation" check reports every page. Only check
+  // pages that opt in. Screens show the ink-drop while they load, and an ink line while a page opens.
+  experimental: { instantInsights: { validationLevel: "manual-warning" } },
   // Each build gets its own service worker (and caches): see public/sw.js.
   env: { NEXT_PUBLIC_BUILD: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || String(Date.now()) },
   /* config options here */

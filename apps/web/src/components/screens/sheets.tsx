@@ -9,7 +9,7 @@ import { Field } from "@/components/ui/field";
 import { Sheet } from "@/components/ui/sheet";
 import { useMembers } from "@/lib/data/hooks";
 import { useData } from "@/lib/data/provider";
-import { addSeed, addTask } from "@/lib/data/repo";
+import { addSeed, addTask, create } from "@/lib/data/repo";
 import { addDays, parseIsoDate } from "@/lib/dates";
 import { useToday } from "@/lib/use-today";
 
@@ -96,6 +96,51 @@ export function GiveJobSheet({ open, onClose }: { open: boolean; onClose: () => 
         <Chips legend="When?" multiple={false} value={[when]} onChange={([v]) => setWhen(v)} options={[{ value: "today", label: "Today" }, { value: "tomorrow", label: "Tomorrow" }, ...(saturday ? [{ value: "saturday", label: "Saturday" }] : [])]} />
         <Button type="submit" disabled={!who[0] || !what.trim()}>
           Give the job
+        </Button>
+      </form>
+    </Sheet>
+  );
+}
+
+/** M18d "Add a reminder": what, which day, and a time if it matters. Once, or every day. */
+export function AddReminderSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { db, householdId } = useData();
+  const today = useToday();
+  const blank = { title: "", on: "", time: "", repeat: "none" as "none" | "daily" };
+  const [f, setF] = useState(blank);
+  const [busy, setBusy] = useState(false);
+  const close = () => {
+    setF(blank); // starts fresh next time
+    onClose();
+  };
+  const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
+  const on = f.on || today || "";
+  return (
+    <Sheet open={open} onClose={close} title="Add a reminder">
+      <form
+        className="flex flex-col gap-5 px-8 pb-[34px] pt-3"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!f.title.trim() || !on || busy) return;
+          setBusy(true);
+          try {
+            await create(db.reminders, { title: f.title.trim(), on, time: f.time || null, repeat: f.repeat, task_id: null, planting_id: null, done_at: null }, householdId);
+            close();
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <Field label="What to remember?" placeholder="Bring the basil in" value={f.title} onChange={(e) => set({ title: e.target.value })} maxLength={80} required />
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Day" type="date" min={today ?? undefined} value={on} onChange={(e) => set({ on: e.target.value })} />
+          <Field label="Time (if it matters)" type="time" value={f.time} onChange={(e) => set({ time: e.target.value })} />
+        </div>
+        {/* True of the code: lib/notify.ts sends reminder notes while the app is open (not by push). */}
+        {f.time ? <p className="-mt-2 text-[15px] leading-normal text-ink-soft">With notes allowed, a note comes around then while Uchibatake is open on this phone.</p> : null}
+        <Chips legend="How often?" multiple={false} value={[f.repeat]} onChange={([v]) => set({ repeat: v as "none" | "daily" })} options={[{ value: "none", label: "Once" }, { value: "daily", label: "Every day" }]} />
+        <Button type="submit" disabled={!f.title.trim() || busy}>
+          Add the reminder
         </Button>
       </form>
     </Sheet>

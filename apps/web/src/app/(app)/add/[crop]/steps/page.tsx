@@ -1,9 +1,10 @@
 import { Suspense } from "react";
+import { PageLoader } from "@/components/ui/page-loader";
 import { StartRoute } from "@/components/screens/routes";
 
 export default function Page({ params }: { params: Promise<{ crop: string }> }) {
   return (
-    <Suspense>
+    <Suspense fallback={<PageLoader />}>
       <StartRoute params={params} step="steps" />
     </Suspense>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageLoader } from "@/components/ui/page-loader";
 import { cropById } from "@uchibatake/content";
 import Link from "next/link";
@@ -47,14 +48,7 @@ export function Journal() {
           Our year in the field
         </Link>
       </div>
-      {entries.length === 0 ? (
-        <div className="rise flex flex-col items-start gap-4 px-8 pt-10">
-          <p className="text-[17px] text-ink-body">The first page is waiting for something small.</p>
-          <Link href="/journal/new" className="tap text-[17px] underline underline-offset-4">
-            Write the first note
-          </Link>
-        </div>
-      ) : null}
+      {entries.length === 0 ? <EmptyState line="The first page is waiting for something small." action="Write the first note" href="/journal/new" /> : null}
 
       {months.map((month, mi) => (
         <section key={month} aria-label={month} className="rise" style={{ "--i": mi + 1 } as React.CSSProperties}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useHousehold, usePlantings, useSpaces } from "@/lib/data/hooks";
@@ -13,6 +14,16 @@ export function Spaces() {
   const spaces = useSpaces();
   const plantings = usePlantings();
   if (!spaces) return <PageLoader />;
+  if (!spaces.length)
+    return (
+      <div className="pb-6">
+        <div className="rise flex flex-col gap-2 px-8 pt-[30px]">
+          <h1 className="font-mincho text-[34px] font-normal">Your spaces</h1>
+          {household?.address ? <p className="text-[16px] text-ink-soft">{household.address}</p> : null}
+        </div>
+        <EmptyState line="A windowsill is enough to begin." action="Add a space" href="/spaces/new" />
+      </div>
+    );
   return (
     <div className="pb-6">
       <div className="rise flex flex-col gap-2 px-8 pt-[30px]">
@@ -20,7 +31,6 @@ export function Spaces() {
         {household?.address ? <p className="text-[16px] text-ink-soft">{household.address}</p> : null}
       </div>
       <div className="flex flex-col gap-3.5 px-8 pt-[22px]">
-        {spaces.length === 0 ? <p className="rise text-[17px] text-ink-body">A windowsill is enough to begin.</p> : null}
         {spaces.map((s, i) => {
           const here = (plantings ?? []).filter((p) => p.space_id === s.id && p.status === "growing");
           const names = listWords(here.map((p, k) => (k ? plantName(p).toLowerCase() : plantName(p))));

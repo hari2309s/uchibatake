@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { BackBar } from "./bars";
 import { InkDropLoader } from "./enso";
 
 /** When a loader was last on screen: a loader that follows straight on carries on, rather than blinking. */
 let lastVisibleAt = 0;
 const CARRY_ON_MS = 400;
+const noop = () => () => {};
 
 /**
  * While a screen's data loads: the ink-drop (15c), centred. It waits a moment
@@ -14,18 +15,22 @@ const CARRY_ON_MS = 400;
  * screens keep their way back above it.
  */
 export function PageLoader({ label = "Loading", delayMs = 150, back }: { label?: string; delayMs?: number; back?: { href: string; label: string } }) {
-  const [show, setShow] = useState(() => Date.now() - lastVisibleAt < CARRY_ON_MS);
+  // Straight after another loader: visible from the first frame (the server render says no).
+  const carryOn = useSyncExternalStore(noop, () => Date.now() - lastVisibleAt < CARRY_ON_MS, () => false);
+  const [waited, setWaited] = useState(false);
+  const show = carryOn || waited;
   useEffect(() => {
-    if (show) {
-      lastVisibleAt = Date.now();
-      const t = setInterval(() => (lastVisibleAt = Date.now()), 200);
-      return () => {
-        clearInterval(t);
-        lastVisibleAt = Date.now();
-      };
+    if (!show) {
+      const t = setTimeout(() => setWaited(true), delayMs);
+      return () => clearTimeout(t);
     }
-    const t = setTimeout(() => setShow(true), delayMs);
-    return () => clearTimeout(t);
+    // On screen: keep the time fresh, so a loader that follows carries straight on.
+    lastVisibleAt = Date.now();
+    const t = setInterval(() => (lastVisibleAt = Date.now()), 200);
+    return () => {
+      clearInterval(t);
+      lastVisibleAt = Date.now();
+    };
   }, [delayMs, show]);
   return (
     <>

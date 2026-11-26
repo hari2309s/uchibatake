@@ -73,5 +73,16 @@ async function checkInner(db: FieldDB, now: Date): Promise<void> {
       sent.frost = today;
     }
   }
+  // Reminders with a time: a note at (or a little after) that time, once that day, if not done yet.
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  for (const r of await live(db.reminders)) {
+    const dueToday = r.on === today || (r.repeat === "daily" && r.on <= today);
+    const doneToday = !!r.done_at && isoDate(new Date(r.done_at)) === today;
+    if (!r.time || !dueToday || doneToday || sent[`rem:${r.id}`] === today || minutes(r.time) > nowMin) continue;
+    await show(r.title, "A reminder from your field.", `rem:${r.id}`, "/reminders");
+    sent[`rem:${r.id}`] = today;
+  }
+  // Only today's reminder marks are kept.
+  for (const k of Object.keys(sent)) if (k.startsWith("rem:") && sent[k] !== today) delete sent[k];
   await setMeta(db, "notesSent", sent);
 }

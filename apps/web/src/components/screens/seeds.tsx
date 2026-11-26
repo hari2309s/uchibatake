@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageLoader } from "@/components/ui/page-loader";
 import { usePlace } from "@/lib/place-climate";
 import { cropById, inWindows, windowsFor, type Place } from "@uchibatake/content";
@@ -72,9 +73,9 @@ export function SeedBox() {
       <BackBar href="/journal" label="Journal" />
       <div className="rise flex flex-col gap-2 px-8 pt-3">
         <h1 className="font-mincho text-[34px] font-normal">Seed box</h1>
-        <p className="text-[16px] text-ink-soft">Paper envelopes, kept cool and dark.</p>
+        {seeds.length ? <p className="text-[16px] text-ink-soft">Paper envelopes, kept cool and dark.</p> : null}
       </div>
-      {seeds.length === 0 ? <p className="px-8 pt-8 text-[17px] text-ink-body">Keep a few seeds from what you grow, and they&apos;ll live here.</p> : null}
+      {seeds.length === 0 ? <EmptyState line="Keep a few seeds from what you grow, and they'll live here." action="Add a seed packet" onAction={() => setAdding(true)} /> : null}
       {group("Sow soon", soon, 1)}
       {group("Saved by us", saved, 3)}
       {group("In the box", rest, 5)}
@@ -97,7 +98,7 @@ export function SeedBox() {
           </ul>
         </section>
       ) : null}
-      <div className="rise px-8 pt-6" style={{ "--i": 8 } as React.CSSProperties}>
+      <div className={seeds.length ? "rise px-8 pt-6" : "hidden"} style={{ "--i": 8 } as React.CSSProperties}>
         <button type="button" onClick={() => setAdding(true)} className="tap flex min-h-16 w-full items-center justify-center gap-2.5 border-[1.5px] border-dashed border-rule-dash text-[17px] font-medium">
           <span aria-hidden className="text-[22px]">
             +
