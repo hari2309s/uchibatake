@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useRouter } from "next/navigation";
 import { FullNotice } from "@/components/ui/notice";
@@ -27,7 +28,7 @@ export function NoticeView({ id }: { id: string }) {
   // Opened from a link with no app history behind it: go Home rather than out of the app.
   const leave = () => (window.history.length > 1 ? router.back() : router.replace("/"));
   if (notice === null) return <Redirect to="/" />;
-  if (!notice) return null;
+  if (!notice) return <PageLoader />;
   const title = notice.kind === "frost" ? "Frost tonight" : notice.kind === "heat" ? "Hot today" : "Heavy rain tonight";
   const body = notice.kind === "frost" && notice.low !== null ? `Down to ${deg(notice.low, settings?.units)} in the night.` : "";
   return (

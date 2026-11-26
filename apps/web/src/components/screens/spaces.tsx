@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useHousehold, usePlantings, useSpaces } from "@/lib/data/hooks";
 import { SUN_WORDS, spaceLine } from "@/lib/space-words";
@@ -11,7 +12,7 @@ export function Spaces() {
   const household = useHousehold();
   const spaces = useSpaces();
   const plantings = usePlantings();
-  if (!spaces) return null;
+  if (!spaces) return <PageLoader />;
   return (
     <div className="pb-6">
       <div className="rise flex flex-col gap-2 px-8 pt-[30px]">

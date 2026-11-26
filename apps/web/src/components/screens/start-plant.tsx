@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { cropById, windowsFor } from "@uchibatake/content";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -62,7 +63,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
       return n;
     });
   if (!crop) return <BackBar href="/add" label="Add a plant" />;
-  if (!today || !household || !spaces) return null;
+  if (!today || !household || !spaces) return <PageLoader back={{ href: "/add", label: "Add a plant" }} />;
 
   const eyebrow = <div className="text-[15px] uppercase tracking-[.16em] text-ink-soft">{crop.name}</div>;
   const header = (

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { almanacDay, cropById, MICROSEASONS, microseasonEnd, microseasonFor, SEASON_TABLES, SOLAR_TERMS, windowMicroseasons, windowsFor, type SeasonTable } from "@uchibatake/content";
 import { useState } from "react";
@@ -34,7 +35,7 @@ export function GrowingYear() {
   const plantings = usePlantings();
   const today = useToday();
   const [sel, setSel] = useState<number | null>(null);
-  if (!household || !today || !plantings) return null;
+  if (!household || !today || !plantings) return <PageLoader />;
   const now = microseasonFor(today.slice(5)).index;
   const i = sel ?? now;
   const table: SeasonTable | undefined = (household.season_table ? SEASON_TABLES[household.season_table] : undefined) ?? household.seasons ?? undefined;

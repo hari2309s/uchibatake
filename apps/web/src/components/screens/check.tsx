@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { cropById } from "@uchibatake/content";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -52,7 +53,7 @@ export function CheckPlant({ id }: { id: string }) {
   // Known up front, so the camera can open straight from the tap (iOS needs the click inside the tap).
   const cameraAsked = useLiveQuery(() => getMeta<boolean>(db, "cameraAsked"), [db]);
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
-  if (!p || !today) return null;
+  if (!p || !today) return <PageLoader back={{ href: "/spaces", label: "Spaces" }} />;
   const crop = p.crop_id ? cropById(p.crop_id) : undefined;
   const name = plantName(p);
 

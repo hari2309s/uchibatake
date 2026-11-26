@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { microseasonFor } from "@uchibatake/content";
 import { useLiveQuery } from "dexie-react-hooks";
 import Link from "next/link";
@@ -32,7 +33,7 @@ export function JournalEditor({ id }: { id?: string }) {
   const [draft, setDraft] = useState<{ writer?: string; text?: string; seal?: SealKind | null; plants?: string[]; places?: string[] } | null>(null);
   const [saving, setSaving] = useState(false);
   const [tagging, setTagging] = useState(false);
-  if (!today || !members || (id && existing === undefined)) return null;
+  if (!today || !members || (id && existing === undefined)) return <PageLoader />;
 
   const on = existing?.written_on ?? today;
   const writer = draft?.writer ?? existing?.writer_id ?? meOf(members, session)?.id ?? members[0]?.id;

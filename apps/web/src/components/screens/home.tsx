@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { regionOf } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
 import Link from "next/link";
@@ -35,7 +36,7 @@ export function Home() {
   const plantings = usePlantings();
   const tasks = useTasksForDay(today ?? "");
   const notice = useLiveQuery(async () => (today ? (await live(db.notices)).find((n) => n.for_date === today) : undefined), [db, today]);
-  if (!today || !household || !plantings) return null;
+  if (!today || !household || !plantings) return <PageLoader />;
 
   const growing = (plantings ?? []).filter((p) => p.status === "growing");
   const open = tasks?.filter((t) => !t.done_at).length ?? 0;

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { cropById } from "@uchibatake/content";
 import Link from "next/link";
@@ -30,7 +31,7 @@ export function EditPlant({ id }: { id: string }) {
   const [started, setStarted] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
-  if (!p || !spaces || !today) return null;
+  if (!p || !spaces || !today) return <PageLoader back={{ href: "/spaces", label: "Spaces" }} />;
   const crop = p.crop_id ? cropById(p.crop_id) : undefined;
   const ranked = crop ? rankSpaces(crop, spaces, today.slice(5), placeOf(household)) : spaces.map((s) => ({ space: s, score: 1 as const, reason: "" }));
   const value = { name: name ?? p.nickname ?? plantName(p), space: space ?? p.space_id, started: started ?? p.started_on };

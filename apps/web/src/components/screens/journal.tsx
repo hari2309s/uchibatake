@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { cropById } from "@uchibatake/content";
 import Link from "next/link";
 import { Seal } from "@/components/ui/seal";
@@ -20,7 +21,7 @@ export function Journal() {
   const members = useMembers();
   const harvests = useHarvests();
   const today = useToday();
-  if (!entries || !today) return null;
+  if (!entries || !today) return <PageLoader />;
   const year = today.slice(0, 4);
   const months = [...new Set(entries.map((e) => monthOf(e.written_on)))];
   const writer = (id: string) => members?.find((m) => m.id === id)?.name ?? "";

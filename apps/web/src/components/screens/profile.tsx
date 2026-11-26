@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
@@ -47,7 +48,7 @@ export function Profile() {
   const members = useMembers();
   const settings = useSettings();
   const theme = useThemePref();
-  if (!household || !members) return null;
+  if (!household || !members) return <PageLoader />;
   const since = parseIsoDate(household.since).toLocaleDateString("en-GB", { month: "long" });
   const signedIn = session.kind === "account" ? (session.provider === "google" ? "Google" : session.email || "Email link") : session.kind === "demo" ? "The demo" : "This phone only";
 

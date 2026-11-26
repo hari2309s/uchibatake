@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { byRegion, regionOf, type Place } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
 import { CROPS, searchCrops, windowsFor, almanacDay, inWindows, type Crop } from "@uchibatake/content";
@@ -38,7 +39,7 @@ function OwnPlant({ name: initial }: { name: string }) {
   const today = useToday();
   const [name, setName] = useState(initial);
   const [picked, setSpace] = useState<string[]>([]);
-  if (!spaces || !today) return null;
+  if (!spaces || !today) return <PageLoader />;
   const space = picked.length ? picked : spaces[0] ? [spaces[0].id] : [];
   return (
     <div className="rise flex flex-col gap-5 px-8 pt-6">
@@ -71,7 +72,7 @@ export function AddPlant() {
   const spaces = useSpaces();
   const today = useToday();
   const [q, setQ] = useState("");
-  if (!today || !household || !spaces) return null;
+  if (!today || !household || !spaces) return <PageLoader />;
   const md = today.slice(5);
   const place = placeOf(household);
   const region = regionOf(household.country);

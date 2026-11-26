@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BackBar } from "@/components/ui/bars";
 import { Switch } from "@/components/ui/choice";
@@ -19,7 +20,7 @@ export function Reminders() {
   const settings = useSettings();
   const today = useToday();
   const notice = useLiveQuery(async () => (today ? (await live(db.notices)).find((n) => n.for_date === today) : undefined), [db, today]);
-  if (!reminders || !today) return null;
+  if (!reminders || !today) return <PageLoader />;
   const weekEnd = addDays(today, 7);
   const todays = reminders.filter((r) => r.on === today || r.repeat === "daily");
   const week = reminders.filter((r) => r.repeat === "none" && r.on > today && r.on <= weekEnd);

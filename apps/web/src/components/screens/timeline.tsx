@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { BackBar } from "@/components/ui/bars";
 import { Seal } from "@/components/ui/seal";
@@ -21,7 +22,7 @@ export function Timeline({ id }: { id: string }) {
   const harvests = useHarvests(id);
   const today = useToday();
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
-  if (!p || !today) return null;
+  if (!p || !today) return <PageLoader back={{ href: "/spaces", label: "Spaces" }} />;
   const name = plantName(p);
   const pages = (journal ?? []).filter((j) => j.planting_ids.includes(p.id));
   const told = new Set(pages.filter((j) => j.seal === "収").map((j) => j.written_on));

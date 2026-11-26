@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useState } from "react";
 import { Avatar, Mark } from "@/components/ui/avatar";
@@ -34,7 +35,7 @@ export function Family() {
   const harvests = useHarvests();
   const today = useToday();
   const tasks = useLiveQuery(() => live(db.tasks), [db]);
-  if (!members || !today || !tasks) return null;
+  if (!members || !today || !tasks) return <PageLoader />;
 
   // This week, Monday to Sunday.
   const dow = (parseIsoDate(today).getDay() + 6) % 7;

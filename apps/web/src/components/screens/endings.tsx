@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import type { Place } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
 import { CROPS, cropById } from "@uchibatake/content";
@@ -56,7 +57,7 @@ export function PlantLost({ id }: { id: string }) {
   const [learn, setLearn] = useState(true);
   const [busy, setBusy] = useState(false);
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
-  if (!p || !today) return null;
+  if (!p || !today) return <PageLoader back={{ href: "/spaces", label: "Spaces" }} />;
   const name = plantName(p);
   const next = nextFor(p, space, today.slice(5), placeOf(household));
   const since = parseIsoDate(p.started_on).toLocaleDateString("en-GB", { month: "long" });
@@ -143,7 +144,7 @@ export function SeasonEnd({ id }: { id: string }) {
   const today = useToday();
   const [busy, setBusy] = useState(false);
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
-  if (!p || !today || !harvests || !members) return null;
+  if (!p || !today || !harvests || !members) return <PageLoader back={{ href: "/spaces", label: "Spaces" }} />;
   const name = plantName(p);
   const crop = p.crop_id ? cropById(p.crop_id) : undefined;
   const t = harvestTotals(harvests, "planting")[0];

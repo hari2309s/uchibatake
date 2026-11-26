@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { cropById, recipeById, RECIPES, regionOf, type Place, type Recipe, type Region } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
 import { listWords } from "@/lib/words";
@@ -68,7 +69,7 @@ export function RecipesView() {
   const spaces = useSpaces();
   const household = useHousehold();
   const today = useToday();
-  if (!plantings || !spaces || !household || !today) return null;
+  if (!plantings || !spaces || !household || !today) return <PageLoader />;
   const place = placeOf(household);
   const region = regionOf(household.country);
   const rows = RECIPES.filter((r) => suitsDiet(r, household.diet))
@@ -118,7 +119,7 @@ export function RecipeView({ id }: { id: string }) {
   const [choosing, setChoosing] = useState(false);
   const [logging, setLogging] = useState<Planting | null>(null);
   if (!r) return <BackBar href="/" label="Home" />;
-  if (!plantings || !spaces || !today) return null;
+  if (!plantings || !spaces || !today) return <PageLoader back={{ href: "/recipes", label: "Recipes" }} />;
   const field = fromField(r, plantings, spaces);
   const growing = field.filter((f) => f.planting);
   const notes = household ? dietNotes(r, household.diet) : [];

@@ -12,6 +12,7 @@ import { endSession, rememberedAccount, subscribeSession, type RememberedAccount
 import { ForecastProvider } from "@/lib/forecast-context";
 import { AppHeader } from "./header";
 import { Notifier } from "./notifier";
+import { NavProgress } from "./nav-progress";
 import { Sharer } from "./sharer";
 import { ClimateBackfill } from "./climate-backfill";
 import { Redirect } from "./redirect";
@@ -81,6 +82,7 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
       {full ? null : <BottomNav />}
       <SaveFieldSheet />
       <Notifier />
+      <NavProgress />
       <Sharer />
       <ClimateBackfill />
     </Column>

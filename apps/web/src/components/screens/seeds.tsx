@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { usePlace } from "@/lib/place-climate";
 import { cropById, inWindows, windowsFor, type Place } from "@uchibatake/content";
 import { useState } from "react";
@@ -41,7 +42,7 @@ export function SeedBox() {
   const climate = usePlace();
   const members = useMembers();
   const today = useToday();
-  if (!seeds || !today) return null;
+  if (!seeds || !today) return <PageLoader />;
   const md = today.slice(5);
   const year = Number(today.slice(0, 4));
   const savedBy = (s: Seed) => (s.source === "saved" ? `Saved by ${members?.find((m) => m.id === s.saved_by)?.name ?? "us"} · ${s.year}` : null);

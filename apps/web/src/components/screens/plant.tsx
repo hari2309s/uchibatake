@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { cropById } from "@uchibatake/content";
 import Link from "next/link";
@@ -29,7 +30,7 @@ export function PlantDetail({ id }: { id: string }) {
   const today = useToday();
   const [harvesting, setHarvesting] = useState(false);
   if (p === null) return <BackBar href="/spaces" label="Spaces" />;
-  if (!p || !today) return null;
+  if (!p || !today) return <PageLoader back={{ href: "/spaces", label: "Spaces" }} />;
 
   const crop = p.crop_id ? cropById(p.crop_id) : undefined;
   const g = growthStatus(p, today, { indoors: isIndoors(space), place: placeOf(household) });

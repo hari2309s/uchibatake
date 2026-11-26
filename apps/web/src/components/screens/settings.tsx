@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -49,7 +50,7 @@ export function SettingsView() {
   const [deleting, setDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  if (!settings || !household) return null;
+  if (!settings || !household) return <PageLoader />;
   const set = (p: Partial<S>) => void setSettings(db, p);
   // A note only counts as on when the phone allows notes: otherwise the switch shows off, and turning it on asks.
   const allowed = notesAllowed();

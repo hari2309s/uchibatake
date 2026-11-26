@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { cropById } from "@uchibatake/content";
 import { useState } from "react";
 import { BackBar } from "@/components/ui/bars";
@@ -37,7 +38,7 @@ export function YearInField() {
   const today = useToday();
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  if (!household || !harvests || !plantings || !journal || !seeds || !members || !today) return null;
+  if (!household || !harvests || !plantings || !journal || !seeds || !members || !today) return <PageLoader />;
 
   const year = today.slice(0, 4);
   const from = household.since > `${year}-01-01` ? household.since : `${year}-01-01`;

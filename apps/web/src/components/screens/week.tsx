@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { MICROSEASONS, microseasonFor, seasonFor, SEASON_TABLES } from "@uchibatake/content";
 import { BackBar } from "@/components/ui/bars";
 import { useHousehold, usePlantings, useSettings, useSpaces } from "@/lib/data/hooks";
@@ -19,7 +20,7 @@ export function Week() {
   const spaces = useSpaces();
   const plantings = usePlantings();
   const today = useToday();
-  if (!household || !today) return null;
+  if (!household || !today) return <PageLoader />;
   const u = settings?.units;
   const table = (household.season_table ? SEASON_TABLES[household.season_table] : undefined) ?? household.seasons ?? undefined;
   const season = table ? seasonFor(table, today.slice(5)) : null;

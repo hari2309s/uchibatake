@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { Seal } from "@/components/ui/seal";
@@ -16,7 +17,7 @@ export function KidJobs({ memberId }: { memberId: string }) {
   const members = useMembers();
   const tasks = useTasksForDay(today ?? "");
   const me = members?.find((m) => m.id === memberId);
-  if (!today || !members || !tasks) return null;
+  if (!today || !members || !tasks) return <PageLoader />;
   if (!me)
     return (
       <div className="flex min-h-dvh flex-col items-start gap-4 px-8 pt-16">

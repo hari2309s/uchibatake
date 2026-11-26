@@ -63,8 +63,8 @@ export function BrokenEnso({ size = 180, className }: { size?: number; className
 
 /**
  * Ink-drop loader (15c): a brush ensō draws itself while two ink rings spread
- * from the centre, on a 2.4 s cycle. Only for network waits (the weather),
- * never for local reads.
+ * from the centre, on a 2.4 s cycle. For network waits, and (through
+ * PageLoader, after a short pause) while a screen's data loads.
  */
 export function InkDropLoader({ label = "Loading", className }: { label?: string; className?: string }) {
   return (

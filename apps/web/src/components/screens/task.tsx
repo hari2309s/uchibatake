@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { cropById } from "@uchibatake/content";
 import { useRouter } from "next/navigation";
 import { BackBar } from "@/components/ui/bars";
@@ -24,7 +25,7 @@ export function TaskDetail({ id }: { id: string }) {
   const members = useMembers();
   const today = useToday();
   if (task === null) return <BackBar href="/" label="Today" />;
-  if (!task || !today) return null;
+  if (!task || !today) return <PageLoader back={{ href: "/", label: "Today" }} />;
   const me = meOf(members, session)?.id ?? null;
   const plants = (plantings ?? []).filter((p) => task.planting_ids.includes(p.id)).map((p, i) => (i ? plantName(p).toLowerCase() : plantName(p)));
   const context = [space?.name, plants.length ? listWords(plants).replace(/^./, (c) => c.toLowerCase()) : null].filter(Boolean).join(" · ");

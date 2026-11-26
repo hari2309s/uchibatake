@@ -10,7 +10,7 @@ import type { Harvest, Household, JournalEntry, Member, Planting, Reminder, Seed
 /**
  * useLiveQuery that starts from the last result for the same query on this
  * device's database, so screens visited before render their content at once
- * (local reads never show a spinner); the live query refreshes it right after.
+ * (so a screen seen before never shows its loader); the live query refreshes it right after.
  */
 const lastValues = new WeakMap<FieldDB, Map<string, unknown>>();
 function useCached<T>(db: FieldDB, key: string, query: () => Promise<T>, deps: unknown[]): T | undefined {

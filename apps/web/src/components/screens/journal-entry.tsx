@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -24,7 +25,7 @@ export function JournalEntryView({ id }: { id: string }) {
   const spaces = useSpaces();
   const [asking, setAsking] = useState(false);
   if (entry === null || entry?.deleted_at) return <BackBar href="/journal" label="Journal" />;
-  if (!entry) return null;
+  if (!entry) return <PageLoader back={{ href: "/journal", label: "Journal" }} />;
   const writer = members?.find((m) => m.id === entry.writer_id);
   const tags = [
     ...(plantings ?? []).filter((p) => entry.planting_ids.includes(p.id)).map((p) => ({ href: `/plants/${p.id}`, label: plantName(p) })),

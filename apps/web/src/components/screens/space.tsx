@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { byRegion, regionOf, type Place, type Region } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
 import { cropById, CROPS, type Crop } from "@uchibatake/content";
@@ -68,7 +69,7 @@ export function SpaceDetail({ id }: { id: string }) {
   const plantings = usePlantings(id);
   const today = useToday();
   if (space === null) return <BackBar href="/spaces" label="Spaces" />;
-  if (!space || !today) return null;
+  if (!space || !today) return <PageLoader back={{ href: "/spaces", label: "Spaces" }} />;
   const growing = (plantings ?? []).filter((p) => p.status === "growing");
   const ended = (plantings ?? []).filter((p) => p.status !== "growing");
   const facts: [string, string][] = [];

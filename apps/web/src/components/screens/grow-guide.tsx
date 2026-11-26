@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { datesFrom } from "@uchibatake/content";
 import { cropById, neighbours, windowMonths, windowsFor } from "@uchibatake/content";
@@ -25,7 +26,7 @@ export function GrowGuide({ id }: { id: string }) {
   const plantings = usePlantings();
   const today = useToday();
   if (!crop) return <BackBar href="/add" label="Add a plant" />;
-  if (!today || !household) return null;
+  if (!today || !household) return <PageLoader back={{ href: "/add", label: "Add a plant" }} />;
   const cropPlace = placeOf(household);
   const w = windowsFor(crop, cropPlace);
   // Outside mild maritime places, the dates are worked out (crops/timing.ts), not copied from the RHS: say so.
