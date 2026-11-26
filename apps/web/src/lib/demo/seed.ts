@@ -108,7 +108,7 @@ export async function seedDemo(db: FieldDB, now: Date = new Date()): Promise<voi
     space(S.sill, 2, { name: "Kitchen windowsill", type: "windowsill", facing: "E", sun_checks: null, sun: "part", size: "s", size_note: null, containers: ["pots"], ground: null, plan: [] }),
     {
       ...space(S.rack, 3, { name: "Hallway rack", type: "rack", facing: null, sun_checks: null, sun: null, size: "s", size_note: null, containers: [], ground: null, plan: [] }),
-      rack: { shelves: 4, medium: "water", light: "yes", light_on: "06:00", light_off: "20:00" },
+      rack: { shelves: 4, medium: "water", light: "yes", light_on: "06:00", light_off: "20:00", tank: 0.66, fed_on: addDays(today, -5), feed_every: 7, ph: 6.1 },
     },
     {
       ...space(S.lightShelf, 4, { name: "Kitchen light shelf", type: "rack", facing: null, sun_checks: null, sun: null, size: "s", size_note: null, containers: ["pots"], ground: null, plan: [] }),

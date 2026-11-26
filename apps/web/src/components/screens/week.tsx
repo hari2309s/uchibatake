@@ -77,7 +77,7 @@ export function Week() {
           <section aria-label="What it means for your plants" className="rise px-8 pt-9" style={{ "--i": 2 } as React.CSSProperties}>
             <h2 className="font-mincho text-[24px] font-normal">What it means for your plants</h2>
             <ol className="pt-3">
-              {meanings(forecast, read(forecast), hasOutdoor).map((m, i) => (
+              {meanings(forecast, read(forecast), hasOutdoor, u).map((m, i) => (
                 <li key={i} className="flex gap-4 border-t border-rule py-3.5 last:border-b">
                   <span aria-hidden className="w-5 font-mincho text-[20px]">
                     {NUMERALS[i]}
@@ -118,7 +118,7 @@ export function Week() {
             </ul>
           </section>
           <p className="px-8 pt-4 text-[15px] text-ink-soft">
-            Forecast for {place || "your area"} from Open-Meteo, {offline || failed ? "last" : ""} fetched {new Date(forecast.at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" })}.
+            Forecast for {place || "your area"} from Open-Meteo, {offline || failed ? "last fetched" : "fetched"} {new Date(forecast.at).toLocaleString("en-GB", { weekday: "short", hour: "numeric", minute: "2-digit" })}.
           </p>
         </>
       )}

@@ -37,7 +37,7 @@ export function WeatherRow({ today }: { today: string }) {
         <Hitokoto title="No weather just now">
           We can&apos;t reach the forecast.{fallback ? ` Here's what the season tells us: ${fallback.charAt(0).toLowerCase()}${fallback.slice(1)}` : " The season's advice still holds."}
         </Hitokoto>
-        <button type="button" onClick={retry} className="tap self-start pl-5 text-[16px] underline underline-offset-4">
+        <button type="button" onClick={retry} className="tap inline-flex min-h-11 items-center self-start pl-5 text-[16px] underline underline-offset-4">
           Try again
         </button>
       </div>
@@ -57,13 +57,13 @@ export function WeatherRow({ today }: { today: string }) {
             {forecast.now.words} · tonight {deg(forecast.days[1]?.lo ?? d0.lo, u)}
           </span>
         </div>
-        <p className="text-[17px] leading-[1.55]">{adviceLine(forecast, r, hasOutdoor)}</p>
+        <p className="text-[17px] leading-[1.55]">{adviceLine(forecast, r, hasOutdoor, u)}</p>
       </div>
       <div className="flex min-h-11 items-center justify-between text-[16px] text-ink-soft">
         <span>
           {outdoorSpace ? `Sun on the ${outdoorSpace.name.toLowerCase()}` : "Sun today"}: {durationWords(d0.sunshine)}
         </span>
-        <Link href="/week" className="tap text-ink underline decoration-ink underline-offset-4">
+        <Link href="/week" className="tap inline-flex min-h-11 items-center text-ink underline decoration-ink underline-offset-4">
           This week
         </Link>
       </div>

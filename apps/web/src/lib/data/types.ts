@@ -81,7 +81,20 @@ export interface Space extends Row {
   ground: string | null;
   /** Pot positions on the ink-line plan, 0–1 across and down. */
   plan: { planting_id: string; x: number; y: number }[];
-  rack: { shelves: number; medium: "water" | "soil"; light: "yes" | "no" | "not-yet"; light_on: string | null; light_off: string | null } | null;
+  rack: {
+    shelves: number;
+    medium: "water" | "soil";
+    light: "yes" | "no" | "not-yet";
+    light_on: string | null;
+    light_off: string | null;
+    /** What the family last saw, 0–1 (water-grown racks). No sensors: only what they record. */
+    tank?: number | null;
+    /** "YYYY-MM-DD" last fed, and how many days between feeds (from their feed's label). */
+    fed_on?: string | null;
+    feed_every?: number | null;
+    /** The last pH they measured, if they do. */
+    ph?: number | null;
+  } | null;
   greenhouse: { heated: "no" | "frost" | "warm"; vents: ("roof" | "side")[] } | null;
   sort: number;
 }

@@ -4,7 +4,7 @@ import { addTask, create, live, update } from "./data/repo";
 import type { Notice, Planting, Space } from "./data/types";
 import type { Forecast } from "./forecast";
 import { parseIsoDate } from "./dates";
-import { durationWords } from "./forecast";
+import { deg, durationWords } from "./forecast";
 import { listWords } from "./words";
 
 /*
@@ -37,7 +37,9 @@ export interface Reading {
   frostNight: number;
   heatToday: boolean;
   heavyRainToday: boolean;
+  /** Rain that has already fallen today (not just forecast). */
   rainedToday: boolean;
+  rainDueToday: boolean;
   low: number;
 }
 
@@ -51,7 +53,8 @@ export function read(f: Forecast): Reading {
     frostNight,
     heatToday: !!today && today.hi >= HEAT_AT,
     heavyRainToday: !!today && today.rainMm >= HEAVY_RAIN_MM,
-    rainedToday: !!today && today.rainMm >= RAINED_MM,
+    rainedToday: !!today && (today.rainSoFarMm ?? 0) >= RAINED_MM,
+    rainDueToday: !!today && today.rainMm >= RAINED_MM,
     low: f.days[1]?.lo ?? today?.lo ?? 0,
   };
 }
@@ -83,23 +86,23 @@ export function noticeJobs(kind: Notice["kind"], plantings: Planting[], spaces: 
 }
 
 /** One line for Home's weather row (02 Home's "advice"). */
-export function adviceLine(f: Forecast, r: Reading, hasOutdoor: boolean): string {
-  const lo = Math.round(r.low);
+export function adviceLine(f: Forecast, r: Reading, hasOutdoor: boolean, units?: "C" | "F"): string {
   let a: string;
-  if (r.frostTonight) a = `Frost tonight, down to ${String(lo).replace("-", "−")}°.${hasOutdoor ? " Have the fleece ready before dark." : ""}`;
+  if (r.frostTonight) a = `Frost tonight, down to ${deg(r.low, units)}.${hasOutdoor ? " Have the fleece ready before dark." : ""}`;
   else if (r.frostNight > 0) a = `Mild for now, but frost is coming on ${weekday(f.days[r.frostNight].date)} night.${hasOutdoor ? " Keep the fleece by the door." : ""}`;
   else if (r.heatToday) a = `Hot today. Water early, and again at dusk if the pots feel light.`;
   else a = hasOutdoor ? "No frost this week. Everything outside can stay uncovered." : "No frost this week.";
   if (r.rainedToday && hasOutdoor) a += " No watering outside today. The rain has it.";
+  else if (r.rainDueToday && hasOutdoor) a += " Rain is due today: feel the pots before you water.";
   return a;
 }
 
 /** "What it means for your plants" (03 Weather): three numbered lines. */
-export function meanings(f: Forecast, r: Reading, hasOutdoor: boolean): { t: string; x: string }[] {
+export function meanings(f: Forecast, r: Reading, hasOutdoor: boolean, units?: "C" | "F"): { t: string; x: string }[] {
   const rainy = f.days.filter((d) => d.rainChance >= 60).length;
   const frost =
     r.frostNight >= 0
-      ? { t: `Frost ${r.frostNight === 0 ? "tonight" : `on ${weekday(f.days[r.frostNight].date)} night`}`, x: `Down to ${Math.round(f.days[r.frostNight + 1].lo)}°.${hasOutdoor ? " Fleece over young and tender plants outside." : ""}` }
+      ? { t: `Frost ${r.frostNight === 0 ? "tonight" : `on ${weekday(f.days[r.frostNight].date)} night`}`, x: `Down to ${deg(f.days[r.frostNight + 1].lo, units)}.${hasOutdoor ? " Fleece over young and tender plants outside." : ""}` }
       : { t: "No frost this week", x: hasOutdoor ? "Everything outside can stay uncovered." : "Nothing to cover." };
   const rain = rainy
     ? { t: `Rain on ${rainy} ${rainy === 1 ? "day" : "days"}`, x: hasOutdoor ? "Skip watering outside on those days, and tip out the saucers afterwards." : "The windowsill still needs its water." }
@@ -113,7 +116,7 @@ export function meanings(f: Forecast, r: Reading, hasOutdoor: boolean): { t: str
  * jobs) for frost, heat or heavy rain, a fleece job before a frost night,
  * and outdoor watering skipped when it has already rained.
  */
-export async function applyForecast(db: FieldDB, f: Forecast, householdId: string, today: string): Promise<void> {
+export async function applyForecast(db: FieldDB, f: Forecast, householdId: string, today: string, units?: "C" | "F"): Promise<void> {
   const [plantings, spaces] = await Promise.all([live(db.plantings), live(db.spaces)]);
   const r = read(f);
   const kinds: Notice["kind"][] = [...(r.frostTonight ? (["frost"] as const) : []), ...(r.heatToday ? (["heat"] as const) : []), ...(r.heavyRainToday ? (["rain"] as const) : [])];
@@ -122,19 +125,22 @@ export async function applyForecast(db: FieldDB, f: Forecast, householdId: strin
     if (await db.notices.get(id)) continue;
     const jobs = noticeJobs(kind, plantings, spaces);
     if (!jobs.length) continue; // nothing growing it applies to: no notice
+    // Two runs at once: the second finds the notice already there (a ConstraintError), which is fine.
     await create(
       db.notices,
       { id, kind, for_date: today, low: kind === "frost" ? Math.round(r.low) : null, high: kind === "heat" ? Math.round(f.days[0].hi) : null, remind_at: kind === "frost" ? (f.days[0].sunset ? `${String(Math.max(0, Number(f.days[0].sunset.slice(0, 2)) - 1)).padStart(2, "0")}:00` : null) : null, checklist: jobs.map((text, i) => ({ id: String(i), text, done_at: null, done_by: null })) },
       householdId
-    );
+    ).catch((e) => {
+      if ((e as Error).name !== "ConstraintError") throw e;
+    });
   }
   const outdoorGrowing = plantings.some((p) => p.status === "growing" && OUTDOOR(spaces.find((s) => s.id === p.space_id)));
   if (r.frostTonight && outdoorGrowing) {
     await addTask(db, {
       title: "Put the fleece by the door",
-      detail: `Frost tonight, down to ${Math.round(r.low)}°.`,
+      detail: `Frost tonight, down to ${deg(r.low, units)}.`,
       how: "Lay it over young and tender plants before dark, and take it off in the morning.",
-      why: `The forecast says ${Math.round(r.low)}° tonight.`,
+      why: `The forecast says ${deg(r.low, units)} tonight.`,
       space_id: null,
       planting_ids: [],
       due_on: today,

@@ -70,6 +70,8 @@ export function GrowingYear() {
             const from = startIdx(s.start);
             const to = startIdx(seasons[(k + 1) % seasons.length].start);
             const st = STYLES[k % STYLES.length];
+            // One season all year: the whole band.
+            if (seasons.length === 1) return <circle key={s.id} cx={C} cy={C} r="160" fill="none" stroke="var(--ink)" strokeWidth="4" opacity="1" className="fade-in" />;
             return <path key={s.id} d={arc(from, to, 160)} fill="none" stroke="var(--ink)" strokeWidth={st.w} strokeDasharray={st.dash} strokeLinecap="round" opacity={seasonAt?.id === s.id ? 1 : 0.55} className="fade-in" style={{ animationDelay: `${k * 90}ms` }} />;
           })}
           {/* Frost months, dotted (Amsterdam's table). */}

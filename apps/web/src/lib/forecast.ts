@@ -18,9 +18,11 @@ export interface Day {
   words: string;
   hi: number;
   lo: number;
-  /** % chance of rain, and mm expected. */
+  /** % chance of rain, and mm expected over the whole day. */
   rainChance: number;
   rainMm: number;
+  /** mm that had already fallen today when the forecast was fetched (today only). */
+  rainSoFarMm?: number;
   sunrise: string;
   sunset: string;
   /** Seconds of sunshine and of daylight. */
@@ -45,11 +47,16 @@ export async function fetchForecast(lat: number, lon: number, signal?: AbortSign
     `https://api.open-meteo.com/v1/forecast?latitude=${a.lat}&longitude=${a.lon}` +
     "&current=temperature_2m,weather_code,wind_speed_10m" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunrise,sunset,sunshine_duration,daylight_duration" +
-    "&timezone=auto&forecast_days=7";
+    "&hourly=precipitation&timezone=auto&forecast_days=7";
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error("forecast unavailable");
   const j = await res.json();
   const d = j.daily;
+  // Rain that has already fallen today: the hours before now (local time at the place).
+  const nowLocal = new Date(Date.now() + (j.utc_offset_seconds ?? 0) * 1000).toISOString().slice(0, 13);
+  const today = d.time?.[0] as string;
+  const hours = (j.hourly?.time ?? []) as string[];
+  const rainSoFar = hours.reduce((sum: number, t: string, i: number) => (t.startsWith(today) && t.slice(0, 13) < nowLocal ? sum + (j.hourly.precipitation?.[i] ?? 0) : sum), 0);
   return {
     at: Date.now(),
     lat: a.lat,
@@ -67,6 +74,7 @@ export async function fetchForecast(lat: number, lon: number, signal?: AbortSign
       sunset: String(d.sunset?.[i] ?? "").slice(11, 16),
       sunshine: d.sunshine_duration?.[i] ?? 0,
       daylight: d.daylight_duration?.[i] ?? 0,
+      ...(i === 0 ? { rainSoFarMm: rainSoFar } : {}),
     })),
   };
 }
@@ -120,7 +128,9 @@ export function useForecast(db: FieldDB, area: { lat: number; lon: number } | nu
     };
   }, [db, area?.lat, area?.lon, tick]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { forecast: f, offline, failed, retry: () => setTick((x) => x + 1) };
+  // Only this area's forecast: after the place changes (or is cleared), the old one isn't shown.
+  const mine = f && area && f.lat === roughArea(area.lat, area.lon).lat && f.lon === roughArea(area.lat, area.lon).lon ? f : null;
+  return { forecast: mine, offline, failed, retry: () => setTick((x) => x + 1) };
 }
 
 /** "3 h 10 min", "40 min", "barely any" (as the design's own duration words). */

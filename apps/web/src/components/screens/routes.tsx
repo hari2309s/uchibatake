@@ -13,6 +13,7 @@ import { Timeline } from "./timeline";
 import { JournalEditor } from "./journal-editor";
 import { KidJobs } from "./kid";
 import { PlantLost, SeasonEnd } from "./endings";
+import { FeedRack } from "./space-kinds";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -33,3 +34,4 @@ export const JournalEditRoute = ({ params }: P) => <JournalEditor id={use(params
 export const KidRoute = ({ params }: P) => <KidJobs memberId={use(params).id} />;
 export const LostRoute = ({ params }: P) => <PlantLost id={use(params).id} />;
 export const SeasonEndRoute = ({ params }: P) => <SeasonEnd id={use(params).id} />;
+export const FeedRoute = ({ params }: P) => <FeedRack id={use(params).id} />;

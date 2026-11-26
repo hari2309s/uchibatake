@@ -6,7 +6,8 @@ import { BackBar } from "@/components/ui/bars";
 import { useHousehold, usePlantings, useSpace } from "@/lib/data/hooks";
 import type { Space } from "@/lib/data/types";
 import { startsNow } from "@/lib/plan";
-import { FACING_WORDS, isIndoors, SIZE_WORDS, SUN_WORDS } from "@/lib/space-words";
+import { FACING_WORDS, isIndoors, SIZE_WORDS, spaceLine, SUN_WORDS } from "@/lib/space-words";
+import { GreenhousePanel, LightShelfPanel, RackPanel } from "./space-kinds";
 import { useToday } from "@/lib/use-today";
 import { listWords } from "@/lib/words";
 import { plantName, PlantCell, Section } from "./parts";
@@ -77,10 +78,7 @@ export function SpaceDetail({ id }: { id: string }) {
     facts.push(["Roots in", space.rack.medium === "water" ? "Water" : "Soil"]);
     if (space.rack.light === "yes" && space.rack.light_on) facts.push(["Grow light", `${space.rack.light_on} – ${space.rack.light_off}`]);
   }
-  if (space.greenhouse) {
-    facts.push(["Heated", space.greenhouse.heated === "no" ? "No" : space.greenhouse.heated === "frost" ? "A little, frost only" : "Yes, kept warm"]);
-    if (space.greenhouse.vents.length) facts.push(["Vents", space.greenhouse.vents.map((v) => (v === "roof" ? "Roof vent" : "Side vents")).join(", ")]);
-  }
+  // A greenhouse's heating and vents are in its own panel (S04); facing, size and sun stay here.
   if (space.ground) facts.push(["Ground", space.ground]);
 
   // Good for: now, and the next two seasons, from the crop windows (temperate data only).
@@ -94,7 +92,11 @@ export function SpaceDetail({ id }: { id: string }) {
       <div className="rise px-8 pt-3">
         <h1 className="font-mincho text-[38px] font-normal leading-[1.1]">{space.name}</h1>
       </div>
-      {facts.length ? (
+      {space.rack && space.rack.shelves > 1 ? <p className="rise px-8 pt-2 text-[16px] text-ink-soft">{spaceLine(space)}</p> : null}
+      {space.rack && space.rack.shelves > 1 ? <RackPanel space={space} plants={growing} /> : null}
+      {space.rack && space.rack.shelves <= 1 && space.rack.light === "yes" ? <LightShelfPanel space={space} /> : null}
+      {space.greenhouse ? <GreenhousePanel space={space} /> : null}
+      {facts.length && !(space.rack && (space.rack.shelves > 1 || space.rack.light === "yes")) ? (
         <div className="rise flex flex-col px-8 pt-[18px]" style={{ "--i": 1 } as React.CSSProperties}>
           {facts.map(([k, v]) => (
             <Fact key={k} k={k} v={v} />
