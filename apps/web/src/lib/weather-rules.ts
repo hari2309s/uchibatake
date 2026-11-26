@@ -129,7 +129,8 @@ export async function applyForecast(db: FieldDB, f: Forecast, householdId: strin
     await create(
       db.notices,
       { id, kind, for_date: today, low: kind === "frost" ? Math.round(r.low) : null, high: kind === "heat" ? Math.round(f.days[0].hi) : null, remind_at: kind === "frost" ? (f.days[0].sunset ? `${String(Math.max(0, Number(f.days[0].sunset.slice(0, 2)) - 1)).padStart(2, "0")}:00` : null) : null, checklist: jobs.map((text, i) => ({ id: String(i), text, done_at: null, done_by: null })) },
-      householdId
+      householdId,
+      { madeByRule: true }
     ).catch((e) => {
       if ((e as Error).name !== "ConstraintError") throw e;
     });

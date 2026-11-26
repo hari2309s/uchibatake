@@ -10,6 +10,7 @@ import { cn } from "@/components/ui/cn";
 import { Seal, SEAL_NAMES, type SealKind } from "@/components/ui/seal";
 import { Sheet } from "@/components/ui/sheet";
 import { useMembers, usePlantings, useSpaces } from "@/lib/data/hooks";
+import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
 import { addJournalEntry, update } from "@/lib/data/repo";
 import { useToday } from "@/lib/use-today";
@@ -21,7 +22,7 @@ import { longDate, plantName } from "./parts";
  * chosen, then filled and tilted like a real stamp.
  */
 export function JournalEditor({ id }: { id?: string }) {
-  const { db } = useData();
+  const { db, session } = useData();
   const router = useRouter();
   const today = useToday();
   const members = useMembers();
@@ -34,7 +35,7 @@ export function JournalEditor({ id }: { id?: string }) {
   if (!today || !members || (id && existing === undefined)) return null;
 
   const on = existing?.written_on ?? today;
-  const writer = draft?.writer ?? existing?.writer_id ?? members.find((m) => m.role === "owner")?.id ?? members[0]?.id;
+  const writer = draft?.writer ?? existing?.writer_id ?? meOf(members, session)?.id ?? members[0]?.id;
   const text = draft?.text ?? existing?.text ?? "";
   const seal = draft?.seal !== undefined ? draft.seal : (existing?.seal ?? null);
   const plants = draft?.plants ?? existing?.planting_ids ?? [];

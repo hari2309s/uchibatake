@@ -10,6 +10,7 @@ import { openFieldDB } from "@/lib/data/db";
 import { moveGuestIntoAccount } from "@/lib/data/migrate";
 import { live } from "@/lib/data/repo";
 import { forgetGuestId, readSession, startAccount } from "@/lib/data/session";
+import { pendingJoin, restoreOnSignIn } from "@/lib/data/sharing";
 
 /**
  * Where the email link and Google send people back. Finishes the sign-in in
@@ -33,11 +34,17 @@ export function AuthCallback() {
         // Only the field this browser is using as a guest right now moves into the account.
         const prev = readSession();
         const account = openFieldDB(user.id);
+        // A phone new to this account: if the account shares a field, it comes here first
+        // (a guest field then joins it). Offline or no share: carry on with this phone's field.
+        await restoreOnSignIn(account).catch(() => false);
         if (prev?.kind === "guest") {
           await moveGuestIntoAccount(openFieldDB(prev.id), account, prev.id);
           forgetGuestId();
         }
         startAccount(user);
+        // Signed in from an invite: back to it.
+        const join = pendingJoin();
+        if (join) return router.replace(`/join/${join}`);
         const household = (await live(account.households))[0];
         router.replace(household?.onboarded_at ? "/" : "/start/where");
       } catch {

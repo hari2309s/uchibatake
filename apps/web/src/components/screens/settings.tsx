@@ -19,6 +19,10 @@ import type { Settings as S } from "@/lib/data/types";
 import { download, exportField } from "@/lib/export";
 import { notesAllowed } from "@/lib/notify";
 import { isoDate } from "@/lib/dates";
+import { deleteAccountEverywhere } from "@/lib/data/sharing";
+import { RemoteError } from "@/lib/data/sync";
+import { AUTH_CONFIGURED } from "@/lib/supabase";
+import { SharingSection } from "./sharing-section";
 
 const head = "px-8 pt-7 text-[15px] font-normal uppercase tracking-[.16em] text-ink-soft";
 
@@ -135,6 +139,9 @@ export function SettingsView() {
         </Row>
       </div>
 
+      <h2 className={head}>Share between phones</h2>
+      <SharingSection />
+
       <h2 className={head}>Your data</h2>
       <div className="px-8">
         <Link href="/privacy" className="rise tap flex min-h-14 items-center justify-between border-b border-rule text-[17px]" style={{ "--i": 8 } as React.CSSProperties}>
@@ -163,7 +170,7 @@ export function SettingsView() {
               {/* M17b: says exactly what goes. Without sync, the field is only on this phone. */}
               <p className="text-[17px] leading-[1.6] text-ink-body">
                 This removes your field from this phone: the spaces and plants, the journal, the harvest log and the seed box. It&apos;s only kept here, so we can&apos;t bring it back.
-                {session.kind === "account" ? " Your sign-in itself (Google or email) isn't removed yet; that comes with sharing between phones." : ""}
+                {session.kind === "account" ? " Your account goes too, and the shared copy of your field if no one else in the family is in it. Family members who joined keep the field on their phones." : ""}
               </p>
               <Hitokoto>You could export your field first, so the memories stay with you.</Hitokoto>
               <Button variant="outline" disabled={busy} onClick={doExport}>
@@ -185,7 +192,12 @@ export function SettingsView() {
               try {
                 if (session.kind === "guest") await deleteGuestField();
                 else if (session.kind === "account") {
-                  // The field first (it's what they asked to remove); signing out after, even if that fails offline.
+                  // The account on the server first (it needs a connection); then this phone.
+                  if (AUTH_CONFIGURED)
+                    await deleteAccountEverywhere().catch((e: unknown) => {
+                      // Sharing was never set up on this server: there's no account data there to remove.
+                      if (!(e instanceof RemoteError && e.kind === "schema")) throw e;
+                    });
                   await forgetFieldDB(session.id);
                   forgetRememberedAccount();
                   endSession();
@@ -193,7 +205,7 @@ export function SettingsView() {
                 } else endSession();
                 router.replace("/");
               } catch {
-                setNote("That didn't finish. Nothing more was removed; try again.");
+                setNote(typeof navigator !== "undefined" && !navigator.onLine ? "Deleting your account needs a connection. Nothing was removed." : "That didn't finish. Nothing more was removed; try again.");
                 setBusy(false);
               }
             }}

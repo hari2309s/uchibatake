@@ -5,9 +5,10 @@ import { Column } from "@/components/ui/shell";
 export const metadata: Metadata = { title: "Privacy · Uchibatake" };
 
 const LINES: [string, string][] = [
-  ["Your field stays on your phone", "Spaces, plants, jobs, harvests, the journal, seeds and photos are kept on this device (in the browser's own storage), one field per person. Signing in doesn't upload them. Sharing between phones is a later, opt-in step."],
-  ["Signing in", "If you sign in, Supabase handles it (Google or an email link). They know your email address and name; nothing from your field is sent to them."],
-  ["Your location", "If you use your phone's location, it's rounded to about a kilometre first. That rough area is sent to OpenStreetMap to name your neighbourhood, and to Open-Meteo for your weather and 30 years of climate history. If you type a town instead, those words are sent to Open-Meteo to find it. We don't keep any of it on a server."],
+  ["Your field stays on your phone", "Spaces, plants, jobs, harvests, the journal, seeds and photos are kept on this device (in the browser's own storage), one field per person. Signing in doesn't upload them."],
+  ["Sharing between phones", "Only if you turn it on (Settings, or by inviting someone): your field is copied to our server (Supabase) so your other phones and the family you invite can open it. That includes your rough area (about a kilometre) and your place name. Photos and your street address are never uploaded. Deleting your account removes the shared copy if no one else is in it."],
+  ["Signing in", "If you sign in, Supabase handles it (Google or an email link). They know your email address and name; nothing from your field is sent to them unless you turn on sharing."],
+  ["Your location", "If you use your phone's location, it's rounded to about a kilometre first. That rough area is sent to OpenStreetMap to name your neighbourhood, and to Open-Meteo for your weather and 30 years of climate history. If you type a town instead, those words are sent to Open-Meteo to find it. We don't keep it on a server, unless you share your field: then the rough area goes with it, so the family's weather matches. Your street address never does."],
   ["Plant photos", "Only if you ask us to look at one, that photo is sent through our server to an AI service (Groq or OpenRouter) to read it. We don't keep it; their own rules apply. Other photos never leave your phone."],
   ["Notes", "Notes are made on your phone from your own field, and only after you allow them."],
   ["The share card", "Drawn on your phone. Nothing is uploaded unless you share it yourself."],

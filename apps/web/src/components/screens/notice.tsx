@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FullNotice } from "@/components/ui/notice";
 import { useMembers, useSettings } from "@/lib/data/hooks";
 import { deg } from "@/lib/forecast";
+import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
 import { create, toggleNoticeItem, update } from "@/lib/data/repo";
 import { useToday } from "@/lib/use-today";
@@ -13,7 +14,7 @@ import { Redirect } from "@/components/app/redirect";
 
 /** 13b: the full-screen notice. Each tick stamps 済. */
 export function NoticeView({ id }: { id: string }) {
-  const { db, householdId } = useData();
+  const { db, householdId, session } = useData();
   const router = useRouter();
   const today = useToday();
   const members = useMembers();
@@ -22,7 +23,7 @@ export function NoticeView({ id }: { id: string }) {
     const n = await db.notices.get(id);
     return n && !n.deleted_at ? n : null;
   }, [db, id]);
-  const me = members?.find((m) => m.role === "owner")?.id ?? null;
+  const me = meOf(members, session)?.id ?? null;
   // Opened from a link with no app history behind it: go Home rather than out of the app.
   const leave = () => (window.history.length > 1 ? router.back() : router.replace("/"));
   if (notice === null) return <Redirect to="/" />;

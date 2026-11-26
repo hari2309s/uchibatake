@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { Avatar, Mark } from "@/components/ui/avatar";
 import { GiveJobSheet } from "./sheets";
+import { InviteSheet } from "./invite";
 import { Seal } from "@/components/ui/seal";
 import { useHarvests, useMembers } from "@/lib/data/hooks";
+import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
 import { completeTask, live, reopenTask } from "@/lib/data/repo";
 import type { Member } from "@/lib/data/types";
@@ -25,8 +27,9 @@ function memberLine(m: Member): string {
 
 /** 10 Family: who's in it, this week's small jobs, and who helped, day by day. */
 export function Family() {
-  const { db } = useData();
+  const { db, session } = useData();
   const [giving, setGiving] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const members = useMembers();
   const harvests = useHarvests();
   const today = useToday();
@@ -47,7 +50,7 @@ export function Family() {
   const everyone = members.every((m) => helped.some((d) => d.some((x) => x.id === m.id)));
   const who = (id: string | null) => members.find((m) => m.id === id);
   // Whoever ticks a job did it: the person using the app (the owner, until each person signs in).
-  const me = members.find((m) => m.role === "owner")?.id ?? null;
+  const me = meOf(members, session)?.id ?? null;
 
   return (
     <div className="pb-9">
@@ -138,8 +141,13 @@ export function Family() {
       </Section>
 
       <Section title="Invite someone" i={6} className="pt-[34px]">
-        {/* Design offers "Send a link". Sharing one field across phones needs sync, which isn't built yet, so we say so. */}
-        <p className="pt-2 text-[17px] leading-[1.6] text-ink-body">A neighbour who waters when you&apos;re away? Invites arrive with sharing between phones, which is still to come.</p>
+        <div className="flex items-center justify-between gap-4 pt-2">
+          <p className="text-[17px] leading-[1.6] text-ink-body">A neighbour who waters when you&apos;re away?</p>
+          <button type="button" onClick={() => setInviting(true)} className="tap min-h-11 flex-none text-[16px] font-medium underline underline-offset-4">
+            Send a link
+          </button>
+        </div>
+        <InviteSheet open={inviting} onClose={() => setInviting(false)} />
       </Section>
     </div>
   );

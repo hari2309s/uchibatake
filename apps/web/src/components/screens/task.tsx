@@ -6,6 +6,7 @@ import { BackBar } from "@/components/ui/bars";
 import { Button } from "@/components/ui/button";
 import { Seal } from "@/components/ui/seal";
 import { useMembers, usePlantings, useSpace, useTask } from "@/lib/data/hooks";
+import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
 import { completeTask, reopenTask, skipTask, snoozeTask } from "@/lib/data/repo";
 import { addDays } from "@/lib/dates";
@@ -15,7 +16,7 @@ import { plantName } from "./parts";
 
 /** M09 Task detail: how, why today, and four calm ways to answer it. */
 export function TaskDetail({ id }: { id: string }) {
-  const { db } = useData();
+  const { db, session } = useData();
   const router = useRouter();
   const task = useTask(id);
   const space = useSpace(task?.space_id ?? "");
@@ -24,7 +25,7 @@ export function TaskDetail({ id }: { id: string }) {
   const today = useToday();
   if (task === null) return <BackBar href="/" label="Today" />;
   if (!task || !today) return null;
-  const me = members?.find((m) => m.role === "owner")?.id ?? null;
+  const me = meOf(members, session)?.id ?? null;
   const plants = (plantings ?? []).filter((p) => task.planting_ids.includes(p.id)).map((p, i) => (i ? plantName(p).toLowerCase() : plantName(p)));
   const context = [space?.name, plants.length ? listWords(plants).replace(/^./, (c) => c.toLowerCase()) : null].filter(Boolean).join(" · ");
   const assignee = members?.find((m) => m.id === task.assignee_id);

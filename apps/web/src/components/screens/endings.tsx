@@ -11,6 +11,7 @@ import { Chips } from "@/components/ui/choice";
 import { brushDraw } from "@/components/ui/enso";
 import { Mottainai } from "@/components/ui/notes";
 import { useHarvests, useHousehold, useMembers, usePlanting, useSpace } from "@/lib/data/hooks";
+import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
 import { addJournalEntry, endPlanting } from "@/lib/data/repo";
 import type { Planting } from "@/lib/data/types";
@@ -42,7 +43,7 @@ function nextFor(p: Planting, space: ReturnType<typeof useSpace>, md: string, te
 
 /** M11: a plant didn't make it. A broken ensō, one honest line, what we learned, and something easier next. */
 export function PlantLost({ id }: { id: string }) {
-  const { db } = useData();
+  const { db, session } = useData();
   const router = useRouter();
   const p = usePlanting(id);
   const space = useSpace(p?.space_id ?? "");
@@ -102,7 +103,7 @@ export function PlantLost({ id }: { id: string }) {
               setBusy(true);
               await endPlanting(db, p.id, today, cause ?? "unsure");
               if (learn) {
-                const writer = members?.find((m) => m.role === "owner")?.id ?? members?.[0]?.id;
+                const writer = meOf(members, session)?.id ?? members?.[0]?.id;
                 if (writer)
                   await addJournalEntry(db, {
                     writer_id: writer,
@@ -131,7 +132,7 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 
 /** M12: end of season. The ensō closes; who picked, with one 収 per picking, in no order of rank; what next. */
 export function SeasonEnd({ id }: { id: string }) {
-  const { db } = useData();
+  const { db, session } = useData();
   const router = useRouter();
   const p = usePlanting(id);
   const space = useSpace(p?.space_id ?? "");
@@ -154,7 +155,7 @@ export function SeasonEnd({ id }: { id: string }) {
     if (busy) return;
     setBusy(true);
     await endPlanting(db, p.id, today);
-    const writer = members.find((m) => m.role === "owner")?.id ?? members[0]?.id;
+    const writer = meOf(members, session)?.id ?? members[0]?.id;
     if (writer) await addJournalEntry(db, { writer_id: writer, written_on: today, title: `The ${name.toLowerCase()} ${plural ? "are" : "is"} done for the year`, text: note, seal: "済", planting_ids: [p.id], space_ids: space ? [space.id] : [], photo_ids: [], kind: "note" });
     router.replace(next);
   };

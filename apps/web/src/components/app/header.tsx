@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { brushDraw } from "@/components/ui/enso";
 import { useHousehold, useMembers, useSettings } from "@/lib/data/hooks";
+import { meOf } from "@/lib/data/me";
+import { useData } from "@/lib/data/provider";
 import { parseIsoDate } from "@/lib/dates";
 import { useToday } from "@/lib/use-today";
 import { useForecastState } from "@/lib/forecast-context";
@@ -34,7 +36,8 @@ export function AppHeader() {
   const today = useToday();
   const { forecast } = useForecastState();
   const weather = forecast ? { tempC: forecast.now.tempC, words: forecast.now.words, at: forecast.at } : null;
-  const me = members?.find((m) => m.role === "owner");
+  const { session } = useData();
+  const me = meOf(members, session);
   const date = today ? parseIsoDate(today).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) : "";
   const temp = weather ? Math.round(settings?.units === "F" ? (weather.tempC * 9) / 5 + 32 : weather.tempC) : null;
 

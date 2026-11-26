@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Seal } from "@/components/ui/seal";
 import { useMembers, useTasksForDay } from "@/lib/data/hooks";
+import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
 import { completeTask, reopenTask } from "@/lib/data/repo";
 import type { Task } from "@/lib/data/types";
@@ -33,7 +34,8 @@ export function TodayList({ day }: { day: string }) {
   const tasks = useTasksForDay(day);
   const [showDone, setShowDone] = useState(false);
   const members = useMembers();
-  const me = members?.find((m) => m.role === "owner")?.id ?? null;
+  const { session } = useData();
+  const me = meOf(members, session)?.id ?? null;
   if (!tasks) return null;
   if (!tasks.length) return <p className="fade-in pt-3 text-[16px] text-ink-soft">Nothing to do today. The field is resting.</p>;
 

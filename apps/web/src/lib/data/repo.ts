@@ -17,10 +17,15 @@ export function nextStamp(prev?: number): number {
   return Math.max(Date.now(), (prev ?? 0) + 1);
 }
 
-/** Inserts a row with fresh bookkeeping. */
-export async function create<T extends Row>(table: Table<T, string>, data: New<T>, householdId: string): Promise<T> {
+/**
+ * Inserts a row with fresh bookkeeping. `madeByRule`: a row any phone in the
+ * family could make the same way (same id, from the forecast or a rule). It
+ * starts with the oldest possible edit time, so when phones share, a version
+ * someone has touched (a ticked job) always wins over a freshly made copy.
+ */
+export async function create<T extends Row>(table: Table<T, string>, data: New<T>, householdId: string, opts?: { madeByRule?: boolean }): Promise<T> {
   const now = Date.now();
-  const row = { ...data, id: data.id ?? newId(), household_id: householdId, created_at: now, updated_at: now, deleted_at: null, dirty: 1 } as T;
+  const row = { ...data, id: data.id ?? newId(), household_id: householdId, created_at: now, updated_at: opts?.madeByRule ? 1 : now, deleted_at: null, dirty: 1 } as T;
   await table.add(row);
   return row;
 }
@@ -104,6 +109,8 @@ export async function addTask(db: FieldDB, task: New<Task>): Promise<Task> {
     if (task.rule_key) {
       const existing = await db.tasks.where("rule_key").equals(task.rule_key).first();
       if (existing) return existing;
+      // The same rule on another phone makes the same row, so shared fields don't get it twice.
+      return create(db.tasks, { ...task, id: task.id ?? `rule:${task.rule_key}` }, hid, { madeByRule: true });
     }
     return create(db.tasks, task, hid);
   });

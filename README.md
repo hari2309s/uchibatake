@@ -67,7 +67,11 @@ on your phone; nothing needs an account to work.
 - **Notes** — a daily note and frost warnings, only after you allow them, never in quiet hours.
 - **Settings** — units, season lead, notes, privacy, "Export my field" (a ZIP of field.json and photos) and delete.
 
-Still to come: opt-in sync between phones (and with it, notes while the app is closed).
+- **Share between phones** (opt-in, signed in) — your field on your other phones and your family's; invites by
+  link ("Send a link" → join), helpers or editors; the newest change wins. Photos and your street address stay
+  on the phone.
+
+Still to come: notes while the app is closed (Web Push).
 
 ## Run it
 
@@ -92,7 +96,10 @@ OPENROUTER_API_KEY=
 Supabase (Authentication › URL Configuration): set the **Site URL** to your deployed address and add
 `<your address>/auth/callback` (and `http://localhost:3000/auth/callback`) to **Redirect URLs**, or sign-in falls
 back to localhost. Turn on the **Google** provider with an OAuth client whose redirect URI is
-`https://<project-ref>.supabase.co/auth/v1/callback`. No database tables are needed yet.
+`https://<project-ref>.supabase.co/auth/v1/callback`.
+
+For sharing between phones, run `supabase/migrations/20261126000000_uchi_sharing.sql` once in the SQL editor
+(or `supabase db push`). It's safe to run again. Without it, everything works on one phone.
 
 Vercel: set the root directory to `apps/web`, add the two `NEXT_PUBLIC_SUPABASE_*` variables, and
 `ENABLE_EXPERIMENTAL_COREPACK=1` so the pinned pnpm is used.
@@ -110,10 +117,13 @@ Vercel: set the root directory to `apps/web`, add the two `NEXT_PUBLIC_SUPABASE_
 
 ## Where your data goes
 
-- Your field lives **on your device** (IndexedDB), one database per person. Signing in doesn't upload it; sharing
-  between phones is a later, opt-in step.
+- Your field lives **on your device** (IndexedDB), one database per person. Signing in doesn't upload it. Only
+  if you turn on sharing (or invite someone) is it copied to Supabase, readable only by your family (row level
+  security); photos and the street address are never uploaded. Deleting your account removes the shared copy
+  when no one else is in it.
 - Your location is rounded to about a kilometre before it's used: to name your neighbourhood (OpenStreetMap),
-  fetch the weather and your climate history (Open-Meteo). It isn't stored on any server.
+  fetch the weather and your climate history (Open-Meteo). It isn't stored on any server unless you share your
+  field (then the rough area goes with it, for the family's weather).
 - A plant photo is sent (through our server) to Groq or OpenRouter only when you ask us to look at it; we don't
   keep it.
 - The share card is drawn on your phone; nothing is uploaded. Export gives you everything as a ZIP.
@@ -127,6 +137,7 @@ apps/web/              Next.js app (App Router)
   src/components/      screens, onboarding, auth
   src/lib/             data layer (Dexie repo, hooks, provider), weather, seasons, plans, rules
 packages/content/      curated, sourced content: crops (RHS), the 72 microseasons, local seasons
+supabase/migrations/   sharing between phones: tables, row level security, invites, account deletion
 ```
 
 Growing advice comes only from curated data with sources (each crop cites its pages); when we don't know, the
