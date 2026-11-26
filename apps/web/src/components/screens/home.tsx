@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { TodayList } from "@/components/app/today-list";
 import { WeatherRow } from "./weather-row";
+import { recipeForThisWeek } from "./recipe";
 import { ButtonLink } from "@/components/ui/button";
 import { Enso } from "@/components/ui/enso";
 import { NoticeRow } from "@/components/ui/notice";
@@ -13,7 +14,7 @@ import { live } from "@/lib/data/repo";
 import { growthStatus, readyWords } from "@/lib/growth";
 import { isIndoors, spaceLine } from "@/lib/space-words";
 import { useToday } from "@/lib/use-today";
-import { capitalise, numberWord } from "@/lib/words";
+import { capitalise, listWords, numberWord } from "@/lib/words";
 import { plantName, PlantCell, Section, SeasonHeader } from "./parts";
 
 /** "Two things to do before dark", "One thing…", "All done". */
@@ -36,6 +37,8 @@ export function Home() {
 
   const growing = (plantings ?? []).filter((p) => p.status === "growing");
   const open = tasks?.filter((t) => !t.done_at).length ?? 0;
+  const tableFor = spaces ? recipeForThisWeek(plantings, spaces, today, household.climate, household.diet) : null;
+  const table = tableFor?.recipe ?? null;
   const ready = growing
     .map((p) => ({ p, g: growthStatus(p, today, { indoors: isIndoors(spaces?.find((s) => s.id === p.space_id)), climate: household.climate }) }))
     .filter((x) => x.g.readyInDays !== null && x.g.readyInDays <= 42)
@@ -106,6 +109,18 @@ export function Home() {
           <p className="pt-2 text-[16px] text-ink-soft">A windowsill is enough to begin.</p>
         </Section>
       )}
+
+      {table ? (
+        <section aria-label="For the table this week" className="rise px-8 pt-11" style={{ "--i": 5 } as React.CSSProperties}>
+          <Link href={`/recipes/${table.id}`} className="tap flex flex-col gap-3.5">
+            <span className="text-[15px] uppercase tracking-[.16em] text-ink-soft">For the table this week</span>
+            <span className="font-mincho text-[26px]">{table.name}</span>
+            <span className="text-[17px] leading-[1.6] text-ink-body">{table.line}</span>
+            <span className="text-[16px] text-ink-soft">Ready from your field: {listWords(tableFor!.ready)}.</span>
+            {table.mottainai ? <span className="text-[16px] leading-[1.55] text-ink-soft">Mottainai: {table.mottainai.charAt(0).toLowerCase() + table.mottainai.slice(1)}</span> : null}
+          </Link>
+        </section>
+      ) : null}
 
       {ready.length ? (
         <Section title="Ready soon" i={4}>

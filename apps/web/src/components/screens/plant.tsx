@@ -122,7 +122,10 @@ export function PlantDetail({ id }: { id: string }) {
         </div>
       ) : null}
       {p.status === "growing" ? (
-        <div className="rise flex justify-center gap-6 px-8 pt-6" style={{ "--i": 5 } as React.CSSProperties}>
+        <div className="rise flex flex-wrap justify-center gap-x-6 px-8 pt-6" style={{ "--i": 5 } as React.CSSProperties}>
+          <Link href={`/plants/${p.id}/check`} className="tap flex min-h-11 items-center text-[16px] text-ink-soft underline underline-offset-4">
+            Something looks wrong?
+          </Link>
           <Link href={`/plants/${p.id}/end`} className="tap flex min-h-11 items-center text-[16px] text-ink-soft underline underline-offset-4">
             The season&apos;s over
           </Link>

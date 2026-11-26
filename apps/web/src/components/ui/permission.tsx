@@ -26,7 +26,7 @@ const COPY: Record<PermissionKind, { title: string; lede: string; detail: string
     title: "May we look too?",
     lede: "To look at a leaf with you when something seems wrong.",
     // Design said photos stay in the field; a diagnosis photo is sent to an AI service to be read.
-    detail: "Only when you tap the camera. Photos stay on this phone. If you ask us to look at one, it's sent to an AI service to read it, and isn't kept.",
+    detail: "Only when you tap the camera. Photos stay on this phone. If you ask us to look at one, it's sent to an AI service to read it. We don't keep it.",
   },
 };
 

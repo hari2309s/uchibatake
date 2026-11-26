@@ -14,6 +14,8 @@ import { JournalEditor } from "./journal-editor";
 import { KidJobs } from "./kid";
 import { PlantLost, SeasonEnd } from "./endings";
 import { FeedRack } from "./space-kinds";
+import { CheckPlant } from "./check";
+import { RecipeView } from "./recipe";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -35,3 +37,5 @@ export const KidRoute = ({ params }: P) => <KidJobs memberId={use(params).id} />
 export const LostRoute = ({ params }: P) => <PlantLost id={use(params).id} />;
 export const SeasonEndRoute = ({ params }: P) => <SeasonEnd id={use(params).id} />;
 export const FeedRoute = ({ params }: P) => <FeedRack id={use(params).id} />;
+export const CheckRoute = ({ params }: P) => <CheckPlant id={use(params).id} />;
+export const RecipeRoute = ({ params }: P) => <RecipeView id={use(params).id} />;
