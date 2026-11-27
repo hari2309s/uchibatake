@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageLoader } from "@/components/ui/page-loader";
 import { byRegion, regionOf, type Place, type Region } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
@@ -110,8 +111,8 @@ export function SpaceDetail({ id }: { id: string }) {
         </div>
       ) : null}
       <InkPlan space={space} />
-      <Section title="Growing here" i={3} className="pt-[34px]">
-        {growing.length ? (
+      {growing.length ? (
+        <Section title="Growing here" i={3} className="pt-[34px]">
           <ul className="pt-2">
             {growing.map((p, i) => (
               <li key={p.id} className="border-b border-rule last:border-b-0">
@@ -119,10 +120,16 @@ export function SpaceDetail({ id }: { id: string }) {
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="pt-2 text-[16px] text-ink-soft">Nothing growing here yet.</p>
-        )}
-      </Section>
+        </Section>
+      ) : plantings === undefined ? null : (
+        // An empty space (M18 style): one open ensō, one sentence, one action; the plant comes back here.
+        <section aria-labelledby="growing-here">
+          <h2 id="growing-here" className="sr-only">
+            Growing here
+          </h2>
+          <EmptyState line="Nothing growing here yet." action="Add a plant" href={`/add?space=${encodeURIComponent(space.id)}`} top={48} />
+        </section>
+      )}
       {now.length || spring.length || summer.length ? (
         <Section title="What this spot is good for" i={4} className="pt-[34px]">
           <div className="flex flex-col pt-2">

@@ -25,8 +25,9 @@ export function GrowGuide({ id }: { id: string }) {
   const spaces = useSpaces();
   const plantings = usePlantings();
   const today = useToday();
-  if (!crop) return <BackBar href="/add" label="Add a plant" />;
-  if (!today || !household) return <PageLoader back={{ href: "/add", label: "Add a plant" }} />;
+  const backHref = spaceParam ? `/add?space=${encodeURIComponent(spaceParam)}` : "/add";
+  if (!crop) return <BackBar href={backHref} label="Add a plant" />;
+  if (!today || !household) return <PageLoader back={{ href: backHref, label: "Add a plant" }} />;
   const cropPlace = placeOf(household);
   const w = windowsFor(crop, cropPlace);
   // Outside mild maritime places, the dates are worked out (crops/timing.ts), not copied from the RHS: say so.
@@ -54,7 +55,7 @@ export function GrowGuide({ id }: { id: string }) {
 
   return (
     <div className="pb-9">
-      <BackBar href="/add" label="Add a plant" />
+      <BackBar href={backHref} label="Add a plant" />
       <div className="rise flex flex-col gap-2 px-8 pt-3.5">
         <h1 className="font-mincho text-[40px] font-normal leading-[1.1]">{crop.name}</h1>
       </div>

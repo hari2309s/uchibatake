@@ -19,9 +19,9 @@ function OpenEnso() {
   );
 }
 
-export function EmptyState({ line, action, href, onAction }: { line: string; action: string; href?: string; onAction?: () => void }) {
+export function EmptyState({ line, action, href, onAction, top = 88 }: { line: string; action: string; href?: string; onAction?: () => void; top?: number }) {
   return (
-    <div className="flex flex-col items-center gap-[26px] px-8 pt-[88px] text-center">
+    <div className="flex flex-col items-center gap-[26px] px-8 text-center" style={{ paddingTop: top }}>
       <OpenEnso />
       <p className="rise max-w-[280px] font-mincho text-[20px] leading-[1.55]" style={{ "--i": 3 } as React.CSSProperties}>
         {line}

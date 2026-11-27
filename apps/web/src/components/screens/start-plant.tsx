@@ -108,7 +108,9 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
   const md = today.slice(5);
   const place = placeOf(household);
   const ranked = rankSpaces(crop, spaces, md, place);
-  const spaceId = choice.space ?? ranked.find((f) => f.score > 0)?.space.id;
+  // A chosen space (or one passed from a space's page) only counts if the crop can grow there.
+  const chosenFits = !!choice.space && ranked.some((f) => f.space.id === choice.space && f.score > 0);
+  const spaceId = (chosenFits ? choice.space : undefined) ?? ranked.find((f) => f.score > 0)?.space.id;
   const space = spaces.find((s) => s.id === spaceId);
   const saturday = addDays(today, ((6 - parseIsoDate(today).getDay() + 7) % 7) || 7);
   const on = choice.on ?? today;

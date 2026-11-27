@@ -5,7 +5,7 @@ import { byRegion, regionOf, type Place } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
 import { CROPS, searchCrops, windowsFor, almanacDay, inWindows, type Crop } from "@uchibatake/content";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Chips } from "@/components/ui/choice";
@@ -32,7 +32,7 @@ function seasonProgress(c: Crop, md: string, place: Place | null): number {
 }
 
 /** M08: a plant we don't know yet. Name, where, and it joins the field with its own story. */
-function OwnPlant({ name: initial }: { name: string }) {
+function OwnPlant({ name: initial, spaceId }: { name: string; spaceId?: string | null }) {
   const { db } = useData();
   const router = useRouter();
   const spaces = useSpaces();
@@ -40,7 +40,8 @@ function OwnPlant({ name: initial }: { name: string }) {
   const [name, setName] = useState(initial);
   const [picked, setSpace] = useState<string[]>([]);
   if (!spaces || !today) return <PageLoader />;
-  const space = picked.length ? picked : spaces[0] ? [spaces[0].id] : [];
+  const preferred = spaceId && spaces.some((s) => s.id === spaceId) ? spaceId : spaces[0]?.id;
+  const space = picked.length ? picked : preferred ? [preferred] : [];
   return (
     <div className="rise flex flex-col gap-5 px-8 pt-6">
       <div className="flex flex-col gap-2">
@@ -72,14 +73,22 @@ export function AddPlant() {
   const spaces = useSpaces();
   const today = useToday();
   const [q, setQ] = useState("");
+  // Opened from a space ("Add a plant" on an empty space): suggestions for it, and the plant goes there.
+  const forSpaceId = useSearchParams().get("space");
   if (!today || !household || !spaces) return <PageLoader />;
+  const forSpace = spaces.find((s) => s.id === forSpaceId) ?? null;
   const md = today.slice(5);
   const place = placeOf(household);
   const region = regionOf(household.country);
-  const bestSpace = (c: Crop) => (place ? rankSpaces(c, spaces, md, place)[0] : undefined);
+  // For one space, everything below is about that space only.
+  const inScope = forSpace ? [forSpace] : spaces;
+  const fitsHere = (c: Crop) => !forSpace || rankSpaces(c, [forSpace], md, place)[0]?.score > 0;
+  // The space only travels with crops that can grow there (no pumpkins on a windowsill).
+  const linkFor = (c: Crop) => (forSpace && fitsHere(c) ? `/crops/${c.id}?space=${encodeURIComponent(forSpace.id)}` : `/crops/${c.id}`);
+  const bestSpace = (c: Crop) => (place ? rankSpaces(c, inScope, md, place)[0] : undefined);
   const line = (c: Crop) => {
     if (!place) return null;
-    const s = spaces.find((sp) => startsNow(c, { key: sp.id, type: sp.type, name: sp.name }, md, place));
+    const s = inScope.find((sp) => startsNow(c, { key: sp.id, type: sp.type, name: sp.name }, md, place));
     if (s) return { now: true, text: "A good time to start." };
     const w = windowsFor(c, place);
     const windows = [...(w?.sow ?? []), ...(w?.sowIndoors ?? []), ...(w?.plantOut ?? [])];
@@ -90,21 +99,23 @@ export function AddPlant() {
   };
   const query = q.trim();
   // Popular where the family lives first, in search and in "good to start now".
-  const list = query ? searchCrops(query, region) : byRegion(CROPS, region).filter((c) => c.sources.length && place && spaces.some((s) => startsNow(c, { key: s.id, type: s.type, name: s.name }, md, place))).slice(0, 8);
-  const later = place ? firstSeason({ spaces: spaces.map((s) => ({ key: s.id, type: s.type, name: s.name })), today, place, likes: household.likes, region }).later : null;
+  const list = query ? searchCrops(query, region) : byRegion(CROPS, region).filter((c) => c.sources.length && place && inScope.some((s) => startsNow(c, { key: s.id, type: s.type, name: s.name }, md, place))).slice(0, 8);
+  const later = place ? firstSeason({ spaces: inScope.map((s) => ({ key: s.id, type: s.type, name: s.name })), today, place, likes: household.likes, region }).later : null;
 
   return (
     <div className="pb-9">
       <div className="rise flex flex-col gap-2 px-8 pt-[30px]">
         <h1 className="font-mincho text-[34px] font-normal">Add a plant</h1>
+        {forSpace ? <p className="text-[16px] text-ink-soft">Adding to: {forSpace.name}</p> : null}
         <p className="text-[16px] text-ink-soft">What would you like to grow?</p>
       </div>
       <div className="rise px-8 pt-4" style={{ "--i": 1 } as React.CSSProperties}>
         <Field label="Search plants" hideLabel placeholder="Search: leeks, mint, peas…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
-      {!query && place ? <h2 className="rise px-8 pt-7 text-[15px] font-normal uppercase tracking-[.16em] text-ink-soft">Good to start now{household.place ? ` in ${household.place}` : ""}</h2> : null}
+      {!query && place && list.length ? <h2 className="rise px-8 pt-7 text-[15px] font-normal uppercase tracking-[.16em] text-ink-soft">Good to start now{household.place ? ` in ${household.place}` : ""}</h2> : null}
+      {!query && place && !list.length && forSpace ? <p className="rise px-8 pt-7 text-[16px] leading-normal text-ink-soft">Nothing we&apos;d start in {forSpace.name} right now. Search for a plant, or look again as the season turns.</p> : null}
       {query && !list.length ? (
-        <OwnPlant key={query} name={query} />
+        <OwnPlant key={query} name={query} spaceId={forSpace?.id} />
       ) : (
         <ul className="px-8 pt-2">
           {list.map((c, i) => {
@@ -113,7 +124,7 @@ export function AddPlant() {
             const meta = [c.difficulty ? DIFFICULTY_WORDS[c.difficulty] : null, best && best.score > 0 ? `best on the ${best.space.name.toLowerCase()}` : null].filter(Boolean).join(" · ");
             return (
               <li key={c.id} className="rise border-b border-rule" style={{ "--i": i + 2 } as React.CSSProperties}>
-                <Link href={`/crops/${c.id}`} className="tap flex items-center gap-4 py-4">
+                <Link href={linkFor(c)} className="tap flex items-center gap-4 py-4">
                   <Enso value={seasonProgress(c, md, place)} size={44} label={l?.now ? "In its starting season" : undefined} />
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="font-mincho text-[21px]">{c.name}</span>
