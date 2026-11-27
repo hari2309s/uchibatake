@@ -7,7 +7,7 @@
 ### Our family's field.
 
 Grow a little food for the people you love — on a balcony, a windowsill, a rack in the hallway, a backyard or a
-greenhouse. A calm, local-first PWA for beginners: the app is a patient grandparent beside you. Your field lives
+greenhouse. A calm, local-first PWA for beginners. Your field lives
 on your phone; nothing needs an account to work.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/hari2309s/uchibatake&root-directory=apps/web)

@@ -3,7 +3,7 @@
 A calm, local-first PWA that helps ordinary families grow food wherever they live:
 balcony pots, windowsills, small vertical/hydroponic racks, backyards and
 greenhouses. Real farms are "coming soon" only. The user is a beginner who may
-never have grown anything; the app is a patient grandparent beside them.
+never have grown anything.
 
 ## Stack
 
