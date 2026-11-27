@@ -17,23 +17,36 @@ import { RecipeView } from "./recipe";
 
 type P = { params: Promise<{ id: string }> };
 
-export const SpaceRoute = ({ params }: P) => <SpaceDetail id={use(params).id} />;
-export const PlantRoute = ({ params }: P) => <PlantDetail id={use(params).id} />;
-export const JournalEntryRoute = ({ params }: P) => <JournalEntryView id={use(params).id} />;
-export const NoticeRoute = ({ params }: P) => <NoticeView id={use(params).id} />;
-export const TaskRoute = ({ params }: P) => <TaskDetail id={use(params).id} />;
-export const GrowGuideRoute = ({ params }: P) => <GrowGuide id={use(params).id} />;
+/**
+ * An id from the address, as it was saved. Ids can hold characters the address encodes (a space made in
+ * onboarding is "<field>:space:balcony", and ":" arrives as "%3A"), so they're decoded before lookup.
+ */
+const fromUrl = (v: string) => {
+  try {
+    return decodeURIComponent(v);
+  } catch {
+    return v; // not valid encoding: use it as it is
+  }
+};
+const useIdParam = (params: P["params"]) => fromUrl(use(params).id);
+
+export const SpaceRoute = ({ params }: P) => <SpaceDetail id={useIdParam(params)} />;
+export const PlantRoute = ({ params }: P) => <PlantDetail id={useIdParam(params)} />;
+export const JournalEntryRoute = ({ params }: P) => <JournalEntryView id={useIdParam(params)} />;
+export const NoticeRoute = ({ params }: P) => <NoticeView id={useIdParam(params)} />;
+export const TaskRoute = ({ params }: P) => <TaskDetail id={useIdParam(params)} />;
+export const GrowGuideRoute = ({ params }: P) => <GrowGuide id={useIdParam(params)} />;
 export const HowToRoute = ({ params }: { params: Promise<{ id: string; slug: string }> }) => {
   const { id, slug } = use(params);
-  return <HowTo id={id} slug={slug} />;
+  return <HowTo id={fromUrl(id)} slug={fromUrl(slug)} />;
 };
-export const StartRoute = ({ params, step }: { params: Promise<{ crop: string }>; step: "start" | "where" | "steps" }) => <StartPlant cropId={use(params).crop} step={step} />;
-export const EditPlantRoute = ({ params }: P) => <PlantDetail id={use(params).id} editing />;
-export const TimelineRoute = ({ params }: P) => <Timeline id={use(params).id} />;
-export const JournalEditRoute = ({ params }: P) => <JournalEntryView id={use(params).id} editing />;
-export const KidRoute = ({ params }: P) => <KidJobs memberId={use(params).id} />;
-export const LostRoute = ({ params }: P) => <PlantLost id={use(params).id} />;
-export const SeasonEndRoute = ({ params }: P) => <SeasonEnd id={use(params).id} />;
-export const FeedRoute = ({ params }: P) => <FeedRack id={use(params).id} />;
-export const CheckRoute = ({ params }: P) => <CheckPlant id={use(params).id} />;
-export const RecipeRoute = ({ params }: P) => <RecipeView id={use(params).id} />;
+export const StartRoute = ({ params, step }: { params: Promise<{ crop: string }>; step: "start" | "where" | "steps" }) => <StartPlant cropId={fromUrl(use(params).crop)} step={step} />;
+export const EditPlantRoute = ({ params }: P) => <PlantDetail id={useIdParam(params)} editing />;
+export const TimelineRoute = ({ params }: P) => <Timeline id={useIdParam(params)} />;
+export const JournalEditRoute = ({ params }: P) => <JournalEntryView id={useIdParam(params)} editing />;
+export const KidRoute = ({ params }: P) => <KidJobs memberId={useIdParam(params)} />;
+export const LostRoute = ({ params }: P) => <PlantLost id={useIdParam(params)} />;
+export const SeasonEndRoute = ({ params }: P) => <SeasonEnd id={useIdParam(params)} />;
+export const FeedRoute = ({ params }: P) => <FeedRack id={useIdParam(params)} />;
+export const CheckRoute = ({ params }: P) => <CheckPlant id={useIdParam(params)} />;
+export const RecipeRoute = ({ params }: P) => <RecipeView id={useIdParam(params)} />;
