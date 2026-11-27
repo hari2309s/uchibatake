@@ -70,13 +70,15 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
   useOnboardingGuard(household ? !!household.onboarded_at : undefined);
   if (!household?.onboarded_at) return null;
   // Full-screen notices (13b) have no nav.
-  const full = path.startsWith("/notice/") || path.startsWith("/kid/");
+  // Full-screen focus pages, with their own close: notices, the kids' view, and the step views
+  // ("How to…" and feeding a rack), which fill the screen exactly (no header or nav to push them taller).
+  const full = path.startsWith("/notice/") || path.startsWith("/kid/") || /^\/crops\/[^/]+\/how-to\//.test(path) || /^\/spaces\/[^/]+\/feed$/.test(path);
   return (
     <ForecastProvider>
     <Column>
       {full ? null : <DemoStrip />}
       {full ? null : <AppHeader />}
-      <main className="flex flex-1 flex-col pb-11">
+      <main className={full ? "flex flex-1 flex-col" : "flex flex-1 flex-col pb-11"}>
         {children}
       </main>
       {full ? null : <BottomNav />}
