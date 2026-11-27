@@ -53,6 +53,12 @@ export function Home() {
       <Link href="/year" aria-label="The growing year" className="tap block">
         <SeasonHeader household={household} settings={settings} today={today} />
       </Link>
+      {/* The ring above opens it too; this says so plainly. */}
+      <div className="rise px-8 pt-1" style={{ "--i": 1 } as React.CSSProperties}>
+        <Link href="/year" className="tap inline-flex min-h-11 items-center text-[16px] text-ink-soft underline underline-offset-4">
+          The growing year ›
+        </Link>
+      </div>
       <WeatherRow today={today} />
 
       {notice ? (

@@ -72,7 +72,9 @@ function Field({ path, children }: { path: string; children: React.ReactNode }) 
   // Full-screen notices (13b) have no nav.
   // Full-screen focus pages, with their own close: notices, the kids' view, and the step views
   // ("How to…" and feeding a rack), which fill the screen exactly (no header or nav to push them taller).
-  const full = path.startsWith("/notice/") || path.startsWith("/kid/") || /^\/crops\/[^/]+\/how-to\//.test(path) || /^\/spaces\/[^/]+\/feed$/.test(path);
+  const full = path.startsWith("/notice/") || path.startsWith("/kid/") || /^\/crops\/[^/]+\/how-to\//.test(path) || /^\/spaces\/[^/]+\/feed$/.test(path) ||
+    // Step-by-step flows with their own progress and close (02a–e add a space, 03a–c start a plant).
+    path === "/spaces/new" || /^\/add\/[^/]+\/(start|where|steps)$/.test(path);
   return (
     <ForecastProvider>
     <Column>

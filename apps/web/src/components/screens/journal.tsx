@@ -51,12 +51,15 @@ export function Journal({ writing: fromRoute = false }: { writing?: boolean } = 
         </button>
       </div>
 
-      <div className="rise flex gap-6 px-8 pt-4" style={{ "--i": 1 } as React.CSSProperties}>
+      <div className="rise flex flex-wrap gap-x-6 px-8 pt-4" style={{ "--i": 1 } as React.CSSProperties}>
         <Link href="/journal/seeds" className="tap flex min-h-11 items-center text-[16px] underline underline-offset-4">
           Seed box
         </Link>
         <Link href="/journal/year" className="tap flex min-h-11 items-center text-[16px] underline underline-offset-4">
           Our year in the field
+        </Link>
+        <Link href="/year" className="tap flex min-h-11 items-center text-[16px] underline underline-offset-4">
+          The growing year
         </Link>
       </div>
       {entries.length === 0 ? <EmptyState line="The first page is waiting for something small." action="Write the first note" onAction={() => setWriting(true)} /> : null}

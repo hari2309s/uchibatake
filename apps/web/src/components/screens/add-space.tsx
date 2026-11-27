@@ -51,16 +51,18 @@ function Compass({ value, onChange }: { value: Facing | null; onChange: (f: Faci
   const angle = value ? DIRS.indexOf(value) * 45 : 225;
   const rad = ((angle - 90) * Math.PI) / 180;
   return (
-    <div className="relative mx-auto mt-6 h-[240px] w-[240px]">
+    // At most 240px; smaller on short screens so the step still fits (the drawing scales with its viewBox).
+    <div className="relative mx-auto mt-6 size-[min(240px,30dvh)]">
       <svg
-        width="240"
-        height="240"
+        viewBox="0 0 240 240"
+        width="100%"
+        height="100%"
         role="radiogroup"
         aria-label="Which way it faces"
         className="block cursor-pointer"
         onClick={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
-          const a = (Math.atan2(e.clientY - r.top - 120, e.clientX - r.left - 120) * 180) / Math.PI + 90;
+          const a = (Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2) * 180) / Math.PI + 90;
           onChange(DIRS[Math.round(((a + 360) % 360) / 45) % 8]);
         }}
       >
@@ -78,7 +80,7 @@ function Compass({ value, onChange }: { value: Facing | null; onChange: (f: Faci
           aria-label={FACING_WORDS[d]}
           onClick={() => onChange(d)}
           className="absolute flex h-11 w-11 items-center justify-center font-mincho text-[18px]"
-          style={[{ left: 98, top: -18 }, { right: -24, top: 98 }, { left: 98, bottom: -18 }, { left: -24, top: 98 }][i]}
+          style={[{ left: "calc(50% - 22px)", top: -18 }, { right: -24, top: "calc(50% - 22px)" }, { left: "calc(50% - 22px)", bottom: -18 }, { left: -24, top: "calc(50% - 22px)" }][i]}
         >
           {d}
         </button>
@@ -116,7 +118,7 @@ export function AddSpace() {
   const south = (household?.area?.lat ?? 52) < 0;
 
   const frame = (body: React.ReactNode, action: React.ReactNode) => (
-    <div className="flex min-h-[calc(100dvh-120px)] flex-col">
+    <div className="flex min-h-dvh flex-col">
       <div className="flex h-12 items-center justify-between pl-8 pr-5">
         <Progress total={order.length} current={order.indexOf(step) + 1} />
         <CloseButton href="/spaces" />
@@ -124,7 +126,7 @@ export function AddSpace() {
       <div key={step} className="page-enter flex flex-col">
         {body}
       </div>
-      <div className="rise mt-auto px-8 pb-[34px] pt-8" style={{ "--i": 6 } as React.CSSProperties}>
+      <div className="rise washi sticky bottom-0 z-10 mt-auto px-8 pb-[34px] pt-5" style={{ "--i": 6 } as React.CSSProperties}>
         {action}
       </div>
     </div>
@@ -140,7 +142,7 @@ export function AddSpace() {
     const md = today.slice(5);
     const goodNow = place ? byRegion(CROPS, region).filter((c) => c.sources.length && startsNow(c, { key: made.id, type: made.type, name: made.name }, md, place)).slice(0, 3) : [];
     return (
-      <div className="flex min-h-[calc(100dvh-120px)] flex-col">
+      <div className="flex min-h-dvh flex-col">
         <div className="flex justify-center pt-[60px]">
           <div className="relative h-[150px] w-[150px]">
             <svg width="150" height="150" aria-hidden className="block">
@@ -177,7 +179,7 @@ export function AddSpace() {
             </ul>
           </>
         ) : null}
-        <div className="mt-auto px-8 pb-[34px] pt-8">
+        <div className="washi sticky bottom-0 z-10 mt-auto px-8 pb-[34px] pt-5">
           <Button onClick={() => router.replace(`/spaces/${made.id}`)}>Done</Button>
         </div>
       </div>

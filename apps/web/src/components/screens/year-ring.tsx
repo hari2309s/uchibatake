@@ -63,7 +63,7 @@ export function GrowingYear() {
     <div className="pb-9">
       <div className="rise flex flex-col gap-2 px-8 pt-[30px]">
         <h1 className="font-mincho text-[34px] font-normal">The growing year</h1>
-        <p className="text-[16px] text-ink-soft">{table ? `${table.place === "generic" ? "Your" : `${household.place || table.place}'s`} seasons outside, Japan's microseasons within.` : "Every microseason, and what your family grows in each."}</p>
+        <p className="text-[16px] text-ink-soft">Every microseason, and what your family does in each.</p>
       </div>
       <div className="rise flex justify-center pt-4" style={{ "--i": 1 } as React.CSSProperties}>
         <svg width="340" height="340" viewBox="0 0 340 340" className="block max-w-full" role="group" aria-label="The year as a ring">

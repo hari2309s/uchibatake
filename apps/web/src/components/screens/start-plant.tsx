@@ -75,7 +75,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
   if (step === "start") {
     const opt = (v: StartMethod, label: string, a: { ok: boolean; why?: string }) => ({ value: v, label, hint: a.why, disabled: !a.ok });
     return (
-      <div className="flex min-h-[calc(100dvh-120px)] flex-col">
+      <div className="flex min-h-dvh flex-col">
         {header}
         <div className="rise flex flex-col gap-2 px-8 pt-2">
           {eyebrow}
@@ -96,7 +96,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
             ]}
           />
         </div>
-        <div className="mt-auto px-8 pb-[34px] pt-8">
+        <div className="washi sticky bottom-0 z-10 mt-auto px-8 pb-[34px] pt-5">
           <Button disabled={!choice.start} onClick={() => router.push(`/add/${crop.id}/where${spaceParam ? `?space=${encodeURIComponent(spaceParam)}` : ""}`)}>
             Continue
           </Button>
@@ -119,7 +119,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
   if (step === "where") {
     const note = space ? companionNote(crop.id, space, plantings ?? []) : null;
     return (
-      <div className="flex min-h-[calc(100dvh-120px)] flex-col">
+      <div className="flex min-h-dvh flex-col">
         {header}
         <div className="rise flex flex-col gap-2 px-8 pt-2">
           {eyebrow}
@@ -164,7 +164,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
           </div>
         ) : null}
         {note ? <Hitokoto className="rise mx-8 mt-6">{note}</Hitokoto> : null}
-        <div className="mt-auto px-8 pb-[34px] pt-8">
+        <div className="washi sticky bottom-0 z-10 mt-auto px-8 pb-[34px] pt-5">
           <Button
             disabled={!space || saving}
             onClick={async () => {
@@ -226,7 +226,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
           { title: ready ? `Ready from ${dateWords(ready.from)}` : "Then, when it's ready", detail: crop.care?.pick },
         ];
   return (
-    <div className="flex min-h-[calc(100dvh-120px)] flex-col">
+    <div className="flex min-h-dvh flex-col">
       <div className="rise flex flex-col gap-2 px-8 pt-10">
         <div className="text-[15px] uppercase tracking-[.16em] text-ink-soft">
           {crop.name} · {space?.name}
@@ -247,7 +247,7 @@ export function StartPlant({ cropId, step }: { cropId: string; step: "start" | "
           </li>
         ))}
       </ol>
-      <div className="mt-auto flex flex-col gap-2.5 px-8 pb-[34px] pt-8">
+      <div className="washi sticky bottom-0 z-10 mt-auto flex flex-col gap-2.5 px-8 pb-[34px] pt-5">
         <Button
           onClick={() => {
             // The flow is finished: the next "Grow this" starts fresh.
