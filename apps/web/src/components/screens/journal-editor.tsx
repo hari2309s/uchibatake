@@ -1,5 +1,7 @@
 "use client";
 
+import { deletePhotos, savePhotos } from "@/lib/photos";
+import { PhotoPicker, type PickedPhoto } from "@/components/ui/photo-picker";
 import { microseasonFor } from "@uchibatake/content";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useState } from "react";
@@ -11,7 +13,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { useMembers, usePlantings, useSpaces } from "@/lib/data/hooks";
 import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
-import { addJournalEntry, update } from "@/lib/data/repo";
+import { addJournalEntry, newId, update } from "@/lib/data/repo";
 import { useToday } from "@/lib/use-today";
 import { longDate, plantName } from "./parts";
 
@@ -30,13 +32,13 @@ export function JournalSheet({ open, onClose, id, atOwnAddress = false }: { open
 }
 
 function JournalForm({ id, onDone }: { id?: string; onDone: () => void }) {
-  const { db, session } = useData();
+  const { db, session, householdId } = useData();
   const today = useToday();
   const members = useMembers();
   const plantings = usePlantings();
   const spaces = useSpaces();
   const existing = useLiveQuery(async () => (id ? ((await db.journal_entries.get(id)) ?? null) : null), [db, id]);
-  const [draft, setDraft] = useState<{ writer?: string; text?: string; seal?: SealKind | null; plants?: string[]; places?: string[] } | null>(null);
+  const [draft, setDraft] = useState<{ writer?: string; text?: string; seal?: SealKind | null; plants?: string[]; places?: string[]; photos?: PickedPhoto[] } | null>(null);
   const [saving, setSaving] = useState(false);
   const [tagging, setTagging] = useState(false);
   if (!today || !members || (id && existing === undefined)) return <div className="min-h-[50dvh]" aria-busy="true" />;
@@ -47,6 +49,7 @@ function JournalForm({ id, onDone }: { id?: string; onDone: () => void }) {
   const seal = draft?.seal !== undefined ? draft.seal : (existing?.seal ?? null);
   const plants = draft?.plants ?? existing?.planting_ids ?? [];
   const places = draft?.places ?? existing?.space_ids ?? [];
+  const photos: PickedPhoto[] = draft?.photos ?? (existing?.photo_ids ?? []).map((id) => ({ key: id, id }));
   const set = (p: Partial<NonNullable<typeof draft>>) => setDraft((d) => ({ ...(d ?? {}), ...p }));
   const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
@@ -61,8 +64,21 @@ function JournalForm({ id, onDone }: { id?: string; onDone: () => void }) {
       };
       // A title someone (or an ending) wrote stays; one taken from the old text follows the new text.
       const title = existing?.title && existing.title !== fromText(existing.text) ? existing.title : fromText(text);
-      if (existing) await update(db.journal_entries, existing.id, { writer_id: writer, text: text.trim(), title, seal, planting_ids: plants, space_ids: places });
-      else await addJournalEntry(db, { writer_id: writer, written_on: on, title, text: text.trim(), seal, planting_ids: plants, space_ids: places, photo_ids: [], kind: "note" });
+      // New photos first (for the page's id, chosen now), then the page with them in one write:
+      // a failure never leaves a half-saved page that a second Save would duplicate.
+      const entryId = existing?.id ?? newId();
+      const added = await savePhotos(db, householdId, photos.filter((p) => p.photo).map((p) => p.photo!), { table: "journal_entries", id: entryId });
+      let n = 0;
+      const photoIds = photos.map((p) => p.id ?? added[n++]);
+      try {
+        if (existing) await update(db.journal_entries, existing.id, { writer_id: writer, text: text.trim(), title, seal, planting_ids: plants, space_ids: places, photo_ids: photoIds });
+        else await addJournalEntry(db, { id: entryId, writer_id: writer, written_on: on, title, text: text.trim(), seal, planting_ids: plants, space_ids: places, photo_ids: photoIds, kind: "note" });
+      } catch (e) {
+        await deletePhotos(db, added);
+        throw e;
+      }
+      // Photos taken off go for good, once the page no longer points at them.
+      await deletePhotos(db, (existing?.photo_ids ?? []).filter((id) => !photoIds.includes(id)));
       onDone();
     } finally {
       setSaving(false);
@@ -104,6 +120,9 @@ function JournalForm({ id, onDone }: { id?: string; onDone: () => void }) {
             style={{ backgroundImage: "repeating-linear-gradient(180deg, transparent 0 35px, var(--rule) 35px 36px)", backgroundAttachment: "local" }}
           />
         </label>
+        <div className="pl-[46px] pr-8 pt-4">
+          <PhotoPicker value={photos} onChange={(v) => set({ photos: v })} />
+        </div>
         {/* What it's about: chosen tags, then (on "+ tag") every plant and space, right here in the drawer. */}
         <div className="flex flex-wrap gap-2 pl-[46px] pr-8 pt-4">
           {(tagging ? tagOptions : tagOptions.filter(isOn)).map((t) => (

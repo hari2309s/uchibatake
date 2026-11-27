@@ -1,5 +1,8 @@
 "use client";
 
+import { deletePhotos } from "@/lib/photos";
+import { PhotoFrame } from "@/components/ui/photo";
+import { usePhotos } from "@/components/ui/photo-picker";
 import { JournalSheet } from "./journal-editor";
 import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
@@ -51,6 +54,7 @@ export function JournalEntryView({ id, editing: fromRoute = false }: { id: strin
           {entry.seal ? <Seal kind={entry.seal} size={44} press /> : null}
         </div>
       </div>
+      <EntryPhotos ids={entry.photo_ids} />
       <p className="rise px-8 pt-5 font-mincho text-[19px] leading-[1.7]" style={{ "--i": 1 } as React.CSSProperties}>
         {entry.text}
       </p>
@@ -76,11 +80,13 @@ export function JournalEntryView({ id, editing: fromRoute = false }: { id: strin
       </div>
       <Sheet open={asking} onClose={() => setAsking(false)} title="Delete this page?">
         <div className="flex flex-col gap-4 px-8 pb-[34px] pt-3">
-          <p className="text-[17px] leading-[1.6] text-ink-body">It goes from the journal and the plant&apos;s story. The harvests stay.</p>
+          <p className="text-[17px] leading-[1.6] text-ink-body">It goes from the journal and the plant&apos;s story{entry.photo_ids.length ? ", with its photos" : ""}. The harvests stay.</p>
           <Button
             variant="outline"
             onClick={async () => {
               await remove(db.journal_entries, entry.id);
+              // Its photos are only on this phone: they go with the page.
+              await deletePhotos(db, entry.photo_ids);
               router.replace("/journal");
             }}
           >
@@ -100,6 +106,19 @@ export function JournalEntryView({ id, editing: fromRoute = false }: { id: strin
           if (fromRoute) router.replace(`/journal/${entry.id}`);
         }}
       />
+    </div>
+  );
+}
+
+/** M15: the page's photos in matted frames, the first one larger. */
+function EntryPhotos({ ids }: { ids: string[] }) {
+  const photos = usePhotos(ids);
+  if (!photos.length) return null;
+  return (
+    <div className="rise flex flex-col gap-3 px-8 pt-5" style={{ "--i": 1 } as React.CSSProperties}>
+      {photos.map((p, i) => (
+        <PhotoFrame key={p.id} src={p.url} alt="" height={i === 0 ? 260 : 190} />
+      ))}
     </div>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { savePhotos } from "@/lib/photos";
+import { PhotoPicker, type PickedPhoto } from "@/components/ui/photo-picker";
 import { useState } from "react";
 import { AvatarPicker } from "@/components/ui/avatar";
 import { ActionDock, Button } from "@/components/ui/button";
@@ -10,7 +12,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { Stepper } from "@/components/ui/stepper";
 import { useMembers } from "@/lib/data/hooks";
 import { useData } from "@/lib/data/provider";
-import { logHarvest } from "@/lib/data/repo";
+import { logHarvest, update } from "@/lib/data/repo";
 import type { Planting } from "@/lib/data/types";
 import { useToday } from "@/lib/use-today";
 import { listWords } from "@/lib/words";
@@ -27,7 +29,7 @@ export function measureFor(grams: number): string {
 
 /** 06a Log a harvest, then 06b: the 収 seal presses in. */
 export function HarvestSheet({ planting, spaceName, open, onClose }: { planting: Planting; spaceName: string; open: boolean; onClose: () => void }) {
-  const { db } = useData();
+  const { db, householdId } = useData();
   const today = useToday();
   const members = useMembers();
   const [unit, setUnit] = useState<"count" | "g">("g");
@@ -38,9 +40,13 @@ export function HarvestSheet({ planting, spaceName, open, onClose }: { planting:
   const [stamped, setStamped] = useState<string | null>(null);
   const [stampKey, setStampKey] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [photos, setPhotos] = useState<PickedPhoto[]>([]);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
   const name = plantName(planting);
   const close = () => {
     setStamped(null);
+    setPhotos([]);
+    setPhotoNote(null);
     onClose();
   };
 
@@ -52,6 +58,11 @@ export function HarvestSheet({ planting, spaceName, open, onClose }: { planting:
             <Seal key={stampKey} kind="収" size={88} press label="Harvest logged" />
           </div>
           <p className="mt-7 px-2 text-[17px] leading-[1.55] text-ink-body">{stamped}</p>
+          {photoNote ? (
+            <p role="status" className="mt-2 text-[16px] text-ink-soft">
+              {photoNote}
+            </p>
+          ) : null}
           <button type="button" className="mt-2.5 min-h-11 text-[16px] text-ink-soft underline underline-offset-4" onClick={() => setStampKey((k) => k + 1)}>
             Replay the stamp
           </button>
@@ -65,8 +76,9 @@ export function HarvestSheet({ planting, spaceName, open, onClose }: { planting:
             e.preventDefault();
             if (!today || saving) return;
             setSaving(true);
+            try {
             const amount = unit === "g" ? grams : count;
-            await logHarvest(db, {
+            const h = await logHarvest(db, {
               planting_id: planting.id,
               crop_id: planting.crop_id,
               amount,
@@ -77,11 +89,23 @@ export function HarvestSheet({ planting, spaceName, open, onClose }: { planting:
               note: note.trim() || null,
               photo_ids: [],
             });
+            if (photos.length) {
+              try {
+                const ids = await savePhotos(db, householdId, photos.map((p) => p.photo!), { table: "harvests", id: h.id });
+                await update(db.harvests, h.id, { photo_ids: ids });
+              } catch {
+                // The harvest is logged; only the photos didn't fit (a full phone, usually).
+                setPhotoNote("The harvest is logged, but the photos couldn't be kept. The phone may be full.");
+              }
+            }
+            setPhotos([]);
             const who = members?.filter((m) => pickers.includes(m.id)).map((m) => m.name) ?? [];
             const howMuch = unit === "g" ? `about ${grams} g` : `${count}`;
             setStamped(`${name}, ${howMuch}${who.length ? `, picked by ${listWords(who)}` : ""}.`);
             setNote("");
-            setSaving(false);
+            } finally {
+              setSaving(false);
+            }
           }}
         >
           <div className="mx-8 mt-4 flex min-h-14 items-center justify-between border-y border-rule">
@@ -103,6 +127,9 @@ export function HarvestSheet({ planting, spaceName, open, onClose }: { planting:
           <div className="mx-6 mt-5">{members ? <AvatarPicker legend="Who picked it?" members={members.map((m) => ({ id: m.id, name: m.name, mark: m.mark }))} value={pickers} onChange={setPickers} /> : null}</div>
           <div className="mx-8 mt-[18px]">
             <Field label="A note" hideLabel placeholder="For Saturday's stamppot" value={note} onChange={(e) => setNote(e.target.value)} />
+          </div>
+          <div className="mx-8 mt-[18px]">
+            <PhotoPicker value={photos} onChange={setPhotos} max={3} />
           </div>
           <ActionDock>
             <Button type="submit" disabled={saving}>

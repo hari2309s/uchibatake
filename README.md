@@ -57,7 +57,10 @@ on your phone; nothing needs an account to work.
   harvest (the 収 stamp), end of season, and when a plant doesn't make it.
 - **Journal** — pages with seals (済 収 種 芽), the seed box, and "Our year in the field" with a share card drawn
   on the phone.
-- **Family** — roles, small jobs, who helped this week, and a kid view where children stamp their own 済.
+- **Family** — add grown-ups and children (a leaf, bean or sprout mark), names, parts and roles, take someone
+  out; small jobs, who helped this week, and a kid view where children stamp their own 済.
+- **Photos** — on journal pages and harvests, in matted frames on the page and the plant; shrunk and kept on
+  the phone only (never uploaded, even when sharing), and in "Export my field".
 - **Weather & seasons** — a seven-day forecast, "This week's sky", and the growing-year ring (local seasons
   outside, the 72 microseasons within).
 
@@ -108,8 +111,9 @@ Supabase (Authentication › URL Configuration): set the **Site URL** to your de
 back to localhost. Turn on the **Google** provider with an OAuth client whose redirect URI is
 `https://<project-ref>.supabase.co/auth/v1/callback`.
 
-For sharing between phones, run `supabase/migrations/20261126000000_uchi_sharing.sql` once in the SQL editor
-(or `supabase db push`). It's safe to run again. Without it, everything works on one phone.
+For sharing between phones, run `supabase/migrations/20261126000000_uchi_sharing.sql` and
+`20261128000000_uchi_family.sql` (owner changes roles / takes someone out) once in the SQL editor (or
+`supabase db push`). They're safe to run again. Without it, everything works on one phone.
 
 For the daily note while the app is closed (optional):
 

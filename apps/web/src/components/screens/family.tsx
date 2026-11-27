@@ -1,5 +1,6 @@
 "use client";
 
+import { MemberSheet } from "./member-sheet";
 import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useState } from "react";
@@ -8,7 +9,7 @@ import { GiveJobSheet } from "./sheets";
 import { InviteSheet } from "./invite";
 import { Seal } from "@/components/ui/seal";
 import { useHarvests, useMembers } from "@/lib/data/hooks";
-import { meOf } from "@/lib/data/me";
+import { canManageFamily, meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
 import { completeTask, live, reopenTask } from "@/lib/data/repo";
 import type { Member } from "@/lib/data/types";
@@ -31,6 +32,7 @@ export function Family() {
   const { db, session } = useData();
   const [giving, setGiving] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [editing, setEditing] = useState<{ member: Member | null } | null>(null);
   const members = useMembers();
   const harvests = useHarvests();
   const today = useToday();
@@ -51,7 +53,10 @@ export function Family() {
   const everyone = members.every((m) => helped.some((d) => d.some((x) => x.id === m.id)));
   const who = (id: string | null) => members.find((m) => m.id === id);
   // Whoever ticks a job did it: the person using the app (the owner, until each person signs in).
-  const me = meOf(members, session)?.id ?? null;
+  const meMember = meOf(members, session);
+  const me = meMember?.id ?? null;
+  // Owners and editors look after the family list; helpers see it.
+  const canManage = canManageFamily(members, session);
 
   return (
     <div className="pb-9">
@@ -66,13 +71,17 @@ export function Family() {
               <Avatar mark={m.mark} size={44} selected={m.role === "owner"} quiet={m.role === "editor"} />
               <span className="flex-1 text-[17px]">{m.name}</span>
               <span className="text-right text-[16px] text-ink-soft">{memberLine(m)}</span>
-              {m.kind === "child" ? <span aria-hidden className="text-[20px]">›</span> : null}
+              {m.kind === "child" || canManage ? <span aria-hidden className="text-[20px]">›</span> : null}
             </>
           );
           return (
             <li key={m.id} className="rise border-t border-rule last:border-b" style={{ "--i": i + 1 } as React.CSSProperties}>
-              {/* Children have their own page of jobs, with a box to stamp (M14). */}
-              {m.kind === "child" ? (
+              {/* Owners and editors open the person (and a child's jobs from there); otherwise children open their jobs (M14). */}
+              {canManage ? (
+                <button type="button" onClick={() => setEditing({ member: m })} className="tap flex min-h-[62px] w-full items-center gap-3.5 text-left" aria-label={`${m.name}: change or take out`}>
+                  {row}
+                </button>
+              ) : m.kind === "child" ? (
                 <Link href={`/kid/${m.id}`} className="tap flex min-h-[62px] items-center gap-3.5" aria-label={`${m.name}'s jobs`}>
                   {row}
                 </Link>
@@ -83,6 +92,17 @@ export function Family() {
           );
         })}
       </ul>
+      {canManage ? (
+        <div className="rise px-8 pt-4" style={{ "--i": members.length + 1 } as React.CSSProperties}>
+          <button type="button" onClick={() => setEditing({ member: null })} className="tap flex min-h-16 w-full items-center justify-center gap-2.5 border-[1.5px] border-dashed border-rule-dash text-[17px] font-medium">
+            <span aria-hidden className="text-[22px]">
+              +
+            </span>
+            Add someone
+          </button>
+        </div>
+      ) : null}
+      <MemberSheet open={!!editing} member={editing?.member ?? null} onClose={() => setEditing(null)} />
 
       {jobs.length ? (
         <Section title="Small jobs this week" i={4} className="pt-[34px]">

@@ -1,5 +1,7 @@
 "use client";
 
+import { PhotoFrame } from "@/components/ui/photo";
+import { usePhotos } from "@/components/ui/photo-picker";
 import { useRouter } from "next/navigation";
 import { EditPlantSheet } from "./edit-plant";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -54,6 +56,14 @@ export function PlantDetail({ id, editing: fromRoute = false }: { id: string; ed
     .sort((a, b) => b.on.localeCompare(a.on))
     .slice(0, 8);
 
+  // Its photos: from its journal pages and its harvests, newest first.
+  const photoIds = [
+    ...pages.map((j) => ({ on: j.written_on, ids: j.photo_ids })),
+    ...(harvests ?? []).map((h) => ({ on: h.picked_on, ids: h.photo_ids })),
+  ]
+    .sort((a, b) => b.on.localeCompare(a.on))
+    .flatMap((x) => x.ids)
+    .slice(0, 30); // the newest six that are on this phone are shown (pages from another phone carry ids without photos)
   const rhythm = ([["Water", crop?.care?.water], ["Feed", crop?.care?.feed], ["Pick", crop?.care?.pick]] as const).filter(([, v]) => v);
 
   return (
@@ -106,7 +116,8 @@ export function PlantDetail({ id, editing: fromRoute = false }: { id: string; ed
         </Section>
       ) : null}
 
-      <Section title="Its story so far" aside="See it all" href={`/plants/${p.id}/timeline`} i={3} className="pt-9">
+      {photoIds.length ? <PlantPhotos ids={photoIds} name={name} /> : null}
+      <Section title="Its story so far" aside="See it all" href={`/plants/${p.id}/timeline`} i={4} className="pt-9">
         <ol className="flex flex-col gap-[18px] pt-3.5">
           {story.map((m, i) => (
             <li key={i} className="grid grid-cols-[64px_1fr] gap-3">
@@ -151,5 +162,26 @@ export function PlantDetail({ id, editing: fromRoute = false }: { id: string; ed
         }}
       />
     </div>
+  );
+}
+
+/** The plant's photos (Fix Pass photo direction): the newest large, the rest in a matted pair grid. */
+function PlantPhotos({ ids, name }: { ids: string[]; name: string }) {
+  const photos = usePhotos(ids).slice(0, 6);
+  if (!photos.length) return null;
+  const [first, ...rest] = photos;
+  return (
+    <Section title="Photos" i={3} className="pt-9">
+      <div className="flex flex-col gap-3 pt-3">
+        <PhotoFrame src={first.url} alt={`${name}, the latest photo`} height={230} />
+        {rest.length ? (
+          <div className="grid grid-cols-2 gap-3">
+            {rest.map((p) => (
+              <PhotoFrame key={p.id} src={p.url} alt={name} height={130} />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </Section>
   );
 }

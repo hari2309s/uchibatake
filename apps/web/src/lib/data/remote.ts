@@ -105,3 +105,13 @@ export async function leaveField(sb: SupabaseClient): Promise<void> {
 export async function deleteAccount(sb: SupabaseClient): Promise<void> {
   await rpc(sb, "uchi_delete_me");
 }
+
+/** The owner changes a joined member's role on the server (their permissions follow). */
+export async function setMemberRole(sb: SupabaseClient, userId: string, role: "editor" | "helper"): Promise<void> {
+  await rpc(sb, "uchi_set_role", { p_user: userId, p_role: role });
+}
+
+/** The owner takes someone off the shared field. */
+export async function removeMember(sb: SupabaseClient, userId: string): Promise<void> {
+  await rpc(sb, "uchi_remove_member", { p_user: userId });
+}

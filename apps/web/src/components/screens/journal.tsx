@@ -1,5 +1,6 @@
 "use client";
 
+import { usePhotos } from "@/components/ui/photo-picker";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { JournalSheet } from "./journal-editor";
@@ -77,8 +78,13 @@ export function Journal({ writing: fromRoute = false }: { writing?: boolean } = 
                   </span>
                   {e.seal ? <Seal kind={e.seal} size={28} /> : null}
                 </span>
-                {e.title ? <span className="font-mincho text-[21px]">{e.title}</span> : null}
-                <span className="line-clamp-3 text-[16px] leading-[1.6] text-ink-body">{e.text}</span>
+                <span className="flex items-start gap-3.5">
+                  <span className="flex min-w-0 flex-1 flex-col gap-2">
+                    {e.title ? <span className="font-mincho text-[21px]">{e.title}</span> : null}
+                    <span className="line-clamp-3 text-[16px] leading-[1.6] text-ink-body">{e.text}</span>
+                  </span>
+                  {e.photo_ids.length ? <Thumb id={e.photo_ids[0]} /> : null}
+                </span>
               </Link>
             ))}
         </section>
@@ -100,5 +106,17 @@ export function Journal({ writing: fromRoute = false }: { writing?: boolean } = 
       ) : null}
       <JournalSheet open={writing} onClose={closeWriting} atOwnAddress={fromRoute} />
     </div>
+  );
+}
+
+/** A page's first photo, small and matted, beside its words. */
+function Thumb({ id }: { id: string }) {
+  const [p] = usePhotos([id]);
+  if (!p?.url) return null;
+  return (
+    <span className="block h-[72px] w-[72px] flex-none border border-rule bg-card p-1">
+      {/* eslint-disable-next-line @next/next/no-img-element -- on-device Blob URLs */}
+      <img src={p.url} alt="" className="block h-full w-full object-cover" style={{ filter: "contrast(.92) saturate(.85) sepia(.08) brightness(1.03)" }} />
+    </span>
   );
 }
