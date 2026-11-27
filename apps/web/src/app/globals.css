@@ -247,6 +247,83 @@ dialog[open] {
   animation: navink 2.4s cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
+/* ── The growing year (08) ──────────────────────────────────────────────── */
+/* A brush sweeps the year round, clockwise from the top (a mask over the band). */
+@keyframes yr-sweep {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.yr-sweep {
+  stroke-dasharray: 1;
+  animation: yr-sweep 1500ms cubic-bezier(0.45, 0.05, 0.2, 1) both;
+}
+/* Each microseason tick draws outward, in a wave round the ring. */
+.yr-tick {
+  stroke-dasharray: 1;
+  animation: strokedraw 520ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+/* Sow and harvest dots press in. */
+@keyframes yr-dot {
+  0% { transform: scale(0); opacity: 0; }
+  65% { transform: scale(1.35); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.yr-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: yr-dot 460ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+/* Today: the vermilion tick presses in, then ink spreads from it, slowly, again and again. */
+@keyframes yr-press {
+  0% { opacity: 0; stroke-width: 9; }
+  60% { opacity: 1; stroke-width: 2.4; }
+  100% { opacity: 1; stroke-width: 3.2; }
+}
+.yr-today {
+  animation: yr-press 620ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+/* Hidden until its turn (a looping animation with a delay would show its first frame while waiting). */
+@keyframes yr-drop {
+  0% { transform: scale(0.4); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.yr-drop {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: yr-drop 2.4s ease-out infinite;
+  animation-fill-mode: none;
+}
+/* On opening, the hand starts at the top of the year and sweeps round to today. */
+@keyframes yr-hand-in {
+  0% { opacity: 0; transform: rotate(calc(var(--a) * -1)); }
+  15% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+.yr-hand-in {
+  animation: yr-hand-in 1300ms 1500ms cubic-bezier(0.45, 0.05, 0.2, 1) both;
+}
+/* The details follow the direction you moved through the year. */
+@keyframes yr-from-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes yr-from-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: none; }
+}
+.yr-next { animation: yr-from-right 460ms cubic-bezier(0.16, 0.84, 0.3, 1) both; }
+.yr-prev { animation: yr-from-left 460ms cubic-bezier(0.16, 0.84, 0.3, 1) both; }
+/* The centre words crossfade with a small rise. */
+@keyframes yr-centre {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.yr-centre {
+  transform-box: fill-box;
+  animation: yr-centre 520ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
 .ink-press {
   animation: inkpress 560ms cubic-bezier(0.2, 0.8, 0.3, 1) both, inkbleed 800ms 280ms ease-out both;
 }
@@ -302,6 +379,40 @@ html {
   @keyframes navink {
     from { transform: scaleX(0.6); opacity: 0.4; }
     to { transform: scaleX(0.6); opacity: 1; }
+  }
+  @keyframes yr-sweep {
+    from { stroke-dashoffset: 0; opacity: 0; }
+    to { stroke-dashoffset: 0; opacity: 1; }
+  }
+  @keyframes yr-dot {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes yr-press {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes yr-from-right {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes yr-from-left {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes yr-centre {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .yr-hand {
+    transition: none !important;
+  }
+  @keyframes yr-hand-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .yr-drop {
+    animation: none;
   }
   .tap:active {
     transform: none;

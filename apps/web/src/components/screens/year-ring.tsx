@@ -3,7 +3,7 @@
 import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { almanacDay, cropById, MICROSEASONS, microseasonEnd, microseasonFor, SEASON_TABLES, SOLAR_TERMS, windowMicroseasons, windowsFor, type SeasonTable } from "@uchibatake/content";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useHousehold, usePlantings } from "@/lib/data/hooks";
 import { parseIsoDate } from "@/lib/dates";
 import { useToday } from "@/lib/use-today";
@@ -35,9 +35,27 @@ export function GrowingYear() {
   const plantings = usePlantings();
   const today = useToday();
   const [sel, setSel] = useState<number | null>(null);
+  // Where the hand points, in degrees, counted on (not wrapped), so it always takes the short way round.
+  const [turn, setTurn] = useState<number | null>(null);
+  const [dir, setDir] = useState<"next" | "prev">("next");
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const brushId = `yr-brush-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   if (!household || !today || !plantings) return <PageLoader />;
   const now = microseasonFor(today.slice(5)).index;
   const i = sel ?? now;
+  // Following today (nothing chosen): the hand points at today, the nearest way from where it was,
+  // so it also moves on by itself when the page stays open into a new microseason.
+  const norm = (d: number) => (((d % 360) + 540) % 360) - 180;
+  const angle = turn === null ? now * 5 : sel === null ? turn + norm(now * 5 - turn) : turn;
+  /** Moves to a microseason (null = today): the hand turns the short way, the details slide that way. */
+  const select = (k: number | null) => {
+    const to = k ?? now;
+    const steps = ((to - i + 108) % 72) - 36; // −36…35: the shorter way round
+    if (steps === 0) return setSel(k);
+    setDir(steps > 0 ? "next" : "prev");
+    setTurn(angle + steps * 5);
+    setSel(k);
+  };
   const table: SeasonTable | undefined = (household.season_table ? SEASON_TABLES[household.season_table] : undefined) ?? household.seasons ?? undefined;
   const place = placeOf(household);
 
@@ -67,40 +85,72 @@ export function GrowingYear() {
       </div>
       <div className="rise flex justify-center pt-4" style={{ "--i": 1 } as React.CSSProperties}>
         <svg width="340" height="340" viewBox="0 0 340 340" className="block max-w-full" role="group" aria-label="The year as a ring">
+          <defs>
+            {/* The brush: one stroke sweeping the year round, clockwise from the top, revealing the band. */}
+            <mask id={brushId} maskUnits="userSpaceOnUse" x="0" y="0" width="340" height="340">
+              <circle cx={C} cy={C} r="130" fill="none" stroke="#fff" strokeWidth="90" pathLength={1} className="yr-sweep" transform={`rotate(-90 ${C} ${C})`} />
+            </mask>
+          </defs>
+          <g mask={`url(#${brushId})`}>
           {/* Local seasons: the outer band. */}
           {seasons.map((s, k) => {
             const from = startIdx(s.start);
             const to = startIdx(seasons[(k + 1) % seasons.length].start);
             const st = STYLES[k % STYLES.length];
             // One season all year: the whole band.
-            if (seasons.length === 1) return <circle key={s.id} cx={C} cy={C} r="160" fill="none" stroke="var(--ink)" strokeWidth="4" opacity="1" className="fade-in" />;
-            return <path key={s.id} d={arc(from, to, 160)} fill="none" stroke="var(--ink)" strokeWidth={st.w} strokeDasharray={st.dash} strokeLinecap="round" opacity={seasonAt?.id === s.id ? 1 : 0.55} className="fade-in" style={{ animationDelay: `${k * 90}ms` }} />;
+            if (seasons.length === 1) return <circle key={s.id} cx={C} cy={C} r="160" fill="none" stroke="var(--ink)" strokeWidth="4" opacity="1" />;
+            // The season you're in darkens gently as you move through the year.
+            return <path key={s.id} d={arc(from, to, 160)} fill="none" stroke="var(--ink)" strokeWidth={st.w} strokeDasharray={st.dash} strokeLinecap="round" opacity={seasonAt?.id === s.id ? 1 : 0.45} style={{ transition: "opacity 600ms ease" }} />;
           })}
           {/* Frost months, dotted (Amsterdam's table). */}
           {table?.frost ? <path d={arc(table.frost.from, table.frost.to, 100)} fill="none" stroke="var(--ink)" strokeWidth="2.5" strokeDasharray="1 6" strokeLinecap="round" /> : null}
           <circle cx={C} cy={C} r="88" fill="none" stroke="var(--rule)" strokeWidth="1" />
+          </g>
+          {/* The 72 microseasons: each tick draws outward, in a wave round the year after the brush. */}
           {MICROSEASONS.map((_, k) => {
             const isTerm = k % 3 === 0;
-            const isNow = k === now;
+            if (k === now) return null;
             const [a1, b1] = P(k, isTerm ? 116 : 123);
             const [a2, b2] = P(k, isTerm ? 146 : 137);
-            return <line key={k} x1={a1} y1={b1} x2={a2} y2={b2} stroke={isNow ? "var(--shu)" : "var(--ink)"} strokeWidth={isNow ? 3.2 : isTerm ? 1.6 : 1} strokeLinecap="round" opacity={isNow || isTerm ? 1 : 0.5} className="fade-in" style={{ animationDelay: `${300 + k * 8}ms` }} />;
+            return <line key={k} x1={a1} y1={b1} x2={a2} y2={b2} pathLength={1} stroke="var(--ink)" strokeWidth={isTerm ? 1.6 : 1} strokeLinecap="round" opacity={isTerm ? 1 : 0.5} className="yr-tick" style={{ animationDelay: `${700 + k * 14}ms` }} />;
           })}
-          {pick.map((names, k) => (names.length ? <circle key={`p${k}`} cx={P(k, 153)[0]} cy={P(k, 153)[1]} r={Math.min(1.4 + names.length * 0.55, 4)} fill="var(--ink)" /> : null))}
-          {sow.map((names, k) => (names.length ? <circle key={`s${k}`} cx={P(k, 108)[0]} cy={P(k, 108)[1]} r="2.6" fill="none" stroke="var(--ink)" strokeWidth="1.2" /> : null))}
-          {/* The selection, then the taps. */}
-          <circle cx={P(i, 163)[0]} cy={P(i, 163)[1]} r="5.5" fill="var(--ink)" style={{ transition: "cx 400ms ease, cy 400ms ease" }} />
+          {/* What this family sows and picks: dots press in, in order round the year. */}
+          {pick.map((names, k) => (names.length ? <circle key={`p${k}`} cx={P(k, 153)[0]} cy={P(k, 153)[1]} r={Math.min(1.4 + names.length * 0.55, 4)} fill="var(--ink)" className="yr-dot" style={{ animationDelay: `${1300 + k * 16}ms` }} /> : null))}
+          {sow.map((names, k) => (names.length ? <circle key={`s${k}`} cx={P(k, 108)[0]} cy={P(k, 108)[1]} r="2.6" fill="none" stroke="var(--ink)" strokeWidth="1.2" className="yr-dot" style={{ animationDelay: `${1300 + k * 16}ms` }} /> : null))}
+          {/* Today: the vermilion tick presses in last, and ink spreads from it. */}
+          {(() => {
+            const [a1, b1] = P(now, 116);
+            const [a2, b2] = P(now, 146);
+            const [dx, dy] = P(now, 131);
+            return (
+              <g>
+                <circle cx={dx} cy={dy} r="9" fill="none" stroke="var(--shu)" strokeWidth="1.2" className="yr-drop" style={{ animationDelay: "2300ms" }} />
+                <line x1={a1} y1={b1} x2={a2} y2={b2} stroke="var(--shu)" strokeWidth="3.2" strokeLinecap="round" className="yr-today" style={{ animationDelay: "1900ms" }} />
+              </g>
+            );
+          })()}
+          {/* The hand: a faint line and the dot, turning round the ring (never across it) to the chosen microseason. */}
+          <g className="yr-hand" style={{ transform: `rotate(${angle}deg)`, transformOrigin: `${C}px ${C}px`, transformBox: "view-box", transition: "transform 700ms cubic-bezier(.2,.8,.3,1)" }}>
+            {/* On opening, the hand sweeps from the top of the year round to today. */}
+            <g className="yr-hand-in" style={{ "--a": `${now * 5}deg`, transformOrigin: `${C}px ${C}px`, transformBox: "view-box" } as React.CSSProperties}>
+              <line x1={C} y1={C - 92} x2={C} y2={C - 158} stroke="var(--ink)" strokeWidth="1" opacity=".22" />
+              <circle cx={C} cy={C - 163} r="5.5" fill="var(--ink)" />
+            </g>
+          </g>
           {MICROSEASONS.map((m, k) => {
             const [h1, k1] = P(k, 96);
             const [h2, k2] = P(k, 166);
-            return <line key={`t${k}`} x1={h1} y1={k1} x2={h2} y2={k2} stroke="transparent" strokeWidth="14" className="cursor-pointer" onClick={() => setSel(k)} aria-label={m.english} />;
+            return <line key={`t${k}`} x1={h1} y1={k1} x2={h2} y2={k2} stroke="transparent" strokeWidth="14" className="cursor-pointer" onClick={() => select(k)} aria-label={m.english} />;
           })}
-          <text x={C} y={C - 8} textAnchor="middle" fontSize="15" className="fill-ink-soft" style={{ fontFamily: "var(--font-gothic)" }}>
-            {seasonAt ? seasonAt.name : term.english}
-          </text>
-          <text x={C} y={C + 16} textAnchor="middle" fontSize="18" className="fill-ink" style={{ fontFamily: "var(--font-mincho)" }}>
-            {seasonAt ? seasonAt.poem : ""}
-          </text>
+          {/* The season's words in the middle, crossfading when the season changes. */}
+          <g key={seasonAt?.id ?? term.english} className="yr-centre" style={{ animationDelay: sel === null && turn === null ? "900ms" : "0ms" }}>
+            <text x={C} y={C - 8} textAnchor="middle" fontSize="15" className="fill-ink-soft" style={{ fontFamily: "var(--font-gothic)" }}>
+              {seasonAt ? seasonAt.name : term.english}
+            </text>
+            <text x={C} y={C + 16} textAnchor="middle" fontSize="18" className="fill-ink" style={{ fontFamily: "var(--font-mincho)" }}>
+              {seasonAt ? seasonAt.poem : ""}
+            </text>
+          </g>
         </svg>
       </div>
       <div className="flex items-center justify-center gap-4 pt-1 text-[15px] text-ink-soft" aria-hidden>
@@ -113,17 +163,33 @@ export function GrowingYear() {
         {table?.frost ? <span>··· frost here</span> : null}
       </div>
       <div className="flex items-center justify-between px-6 pt-3">
-        <button type="button" aria-label="Previous microseason" className="tap flex h-11 w-11 items-center justify-center text-[22px]" onClick={() => setSel((i + 71) % 72)}>
+        <button type="button" aria-label="Previous microseason" className="tap flex h-11 w-11 items-center justify-center text-[22px]" onClick={() => select((i + 71) % 72)}>
           ‹
         </button>
-        <button type="button" className="tap min-h-11 text-[16px] underline underline-offset-4 disabled:no-underline disabled:opacity-40" disabled={i === now} onClick={() => setSel(null)}>
+        <button type="button" className="tap min-h-11 text-[16px] underline underline-offset-4 disabled:no-underline disabled:opacity-40" disabled={i === now} onClick={() => select(null)}>
           Back to today
         </button>
-        <button type="button" aria-label="Next microseason" className="tap flex h-11 w-11 items-center justify-center text-[22px]" onClick={() => setSel((i + 1) % 72)}>
+        <button type="button" aria-label="Next microseason" className="tap flex h-11 w-11 items-center justify-center text-[22px]" onClick={() => select((i + 1) % 72)}>
           ›
         </button>
       </div>
-      <section key={i} aria-live="polite" className="fade-in mx-8 mt-4 flex flex-col gap-3 border-t border-rule pt-5">
+      {/* The details slide in from the way you moved; a sideways swipe moves a microseason. */}
+      <section
+        key={i}
+        aria-live="polite"
+        className={`${sel === null && turn === null ? "rise" : dir === "next" ? "yr-next" : "yr-prev"} mx-8 mt-4 flex touch-pan-y flex-col gap-3 border-t border-rule pt-5`}
+        style={{ "--i": 3 } as React.CSSProperties}
+        onPointerDown={(e) => {
+          swipe.current = e.pointerType === "mouse" ? null : { x: e.clientX, y: e.clientY };
+        }}
+        onPointerUp={(e) => {
+          const s0 = swipe.current;
+          swipe.current = null;
+          if (!s0) return;
+          const dx = e.clientX - s0.x;
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(e.clientY - s0.y) * 1.5) select(dx < 0 ? (i + 1) % 72 : (i + 71) % 72);
+        }}
+      >
         <div className="flex gap-4">
           <span lang="ja" aria-hidden className="vertical font-mincho text-[20px] tracking-[.3em]">
             {ms.kanji}
