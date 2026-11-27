@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { EditPlantSheet } from "./edit-plant";
 import { PageLoader } from "@/components/ui/page-loader";
 import { placeOf } from "@/lib/place-climate";
 import { cropById } from "@uchibatake/content";
@@ -21,7 +23,9 @@ import { plantName, Section, shortDate } from "./parts";
 const START_WORDS = { seed: "Sown", plant: "Planted", scraps: "Started from scraps", existing: "Already growing when we began" } as const;
 
 /** 05 Plant detail: where it is in its season, its rhythm, its story. */
-export function PlantDetail({ id }: { id: string }) {
+export function PlantDetail({ id, editing: fromRoute = false }: { id: string; editing?: boolean }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(fromRoute);
   const p = usePlanting(id);
   const household = useHousehold();
   const space = useSpace(p?.space_id ?? "");
@@ -58,9 +62,9 @@ export function PlantDetail({ id }: { id: string }) {
         href={space ? `/spaces/${space.id}` : "/spaces"}
         label={space?.name ?? "Spaces"}
         right={
-          <Link href={`/plants/${p.id}/edit`} className="tap flex min-h-11 items-center px-2 text-[17px]">
+          <button type="button" onClick={() => setEditing(true)} className="tap flex min-h-11 items-center px-2 text-[17px]">
             Edit
-          </Link>
+          </button>
         }
       />
       <div className="relative flex justify-center pt-3">
@@ -137,6 +141,15 @@ export function PlantDetail({ id }: { id: string }) {
         </div>
       ) : null}
       <HarvestSheet planting={p} spaceName={space?.name ?? ""} open={harvesting} onClose={() => setHarvesting(false)} />
+      <EditPlantSheet
+        planting={p}
+        atOwnAddress={fromRoute}
+        open={editing}
+        onClose={() => {
+          setEditing(false);
+          if (fromRoute) router.replace(`/plants/${p.id}`);
+        }}
+      />
     </div>
   );
 }

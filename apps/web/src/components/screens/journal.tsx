@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { JournalSheet } from "./journal-editor";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageLoader } from "@/components/ui/page-loader";
 import { cropById } from "@uchibatake/content";
@@ -17,7 +20,14 @@ const monthOf = (iso: string) => {
 };
 
 /** 07 Journal: the family's field, written down, newest first, by month. */
-export function Journal() {
+export function Journal({ writing: fromRoute = false }: { writing?: boolean } = {}) {
+  const router = useRouter();
+  const [writing, setWriting] = useState(fromRoute);
+  const closeWriting = () => {
+    setWriting(false);
+    // Opened at /journal/new: back to the journal itself.
+    if (fromRoute) router.replace("/journal");
+  };
   const entries = useJournal();
   const members = useMembers();
   const harvests = useHarvests();
@@ -35,9 +45,9 @@ export function Journal() {
           <h1 className="font-mincho text-[34px] font-normal">Journal</h1>
           <p className="text-[16px] text-ink-soft">Our family&apos;s field, written down.</p>
         </div>
-        <Link href="/journal/new" aria-label="Write a new page" className="tap pop flex h-12 w-12 flex-none items-center justify-center rounded-full bg-ink text-[22px] text-on-ink">
+        <button type="button" onClick={() => setWriting(true)} aria-label="Write a new page" className="tap pop flex h-12 w-12 flex-none items-center justify-center rounded-full bg-ink text-[22px] text-on-ink">
           ✎
-        </Link>
+        </button>
       </div>
 
       <div className="rise flex gap-6 px-8 pt-4" style={{ "--i": 1 } as React.CSSProperties}>
@@ -48,7 +58,7 @@ export function Journal() {
           Our year in the field
         </Link>
       </div>
-      {entries.length === 0 ? <EmptyState line="The first page is waiting for something small." action="Write the first note" href="/journal/new" /> : null}
+      {entries.length === 0 ? <EmptyState line="The first page is waiting for something small." action="Write the first note" onAction={() => setWriting(true)} /> : null}
 
       {months.map((month, mi) => (
         <section key={month} aria-label={month} className="rise" style={{ "--i": mi + 1 } as React.CSSProperties}>
@@ -88,6 +98,7 @@ export function Journal() {
           </ul>
         </Section>
       ) : null}
+      <JournalSheet open={writing} onClose={closeWriting} atOwnAddress={fromRoute} />
     </div>
   );
 }

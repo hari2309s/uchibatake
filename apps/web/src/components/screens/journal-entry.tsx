@@ -1,5 +1,6 @@
 "use client";
 
+import { JournalSheet } from "./journal-editor";
 import { PageLoader } from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,8 @@ import { useData } from "@/lib/data/provider";
 import { longDate, plantName } from "./parts";
 
 /** M15 Journal entry: the full page, its plants and place, and who wrote it. */
-export function JournalEntryView({ id }: { id: string }) {
+export function JournalEntryView({ id, editing: fromRoute = false }: { id: string; editing?: boolean }) {
+  const [editing, setEditing] = useState(fromRoute);
   const { db } = useData();
   const router = useRouter();
   const entry = useLiveQuery(async () => (await db.journal_entries.get(id)) ?? null, [db, id]);
@@ -37,9 +39,9 @@ export function JournalEntryView({ id }: { id: string }) {
         href="/journal"
         label="Journal"
         right={
-          <Link href={`/journal/${entry.id}/edit`} className="tap flex min-h-11 items-center px-2 text-[17px]">
+          <button type="button" onClick={() => setEditing(true)} className="tap flex min-h-11 items-center px-2 text-[17px]">
             Edit
-          </Link>
+          </button>
         }
       />
       <div className="rise flex flex-col gap-2 px-8 pt-3">
@@ -89,6 +91,15 @@ export function JournalEntryView({ id }: { id: string }) {
           </button>
         </div>
       </Sheet>
+      <JournalSheet
+        id={entry.id}
+        atOwnAddress={fromRoute}
+        open={editing}
+        onClose={() => {
+          setEditing(false);
+          if (fromRoute) router.replace(`/journal/${entry.id}`);
+        }}
+      />
     </div>
   );
 }

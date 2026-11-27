@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { CloseButton } from "./bars";
 
 /**
@@ -8,9 +8,15 @@ import { CloseButton } from "./bars";
  * opened modally, so focus is trapped and Esc closes it. Washi surface with
  * an 18px top radius and a grab handle; the page dims behind it.
  */
-export function Sheet({ open, onClose, title, eyebrow, children, hideClose }: { open: boolean; onClose: () => void; title: string; eyebrow?: string; children: React.ReactNode; hideClose?: boolean }) {
+export function Sheet({ open, onClose, title, eyebrow, children, hideClose, backCloses = true }: { open: boolean; onClose: () => void; title: string; eyebrow?: string; children: React.ReactNode; hideClose?: boolean; backCloses?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   const openRef = useRef(open);
+  const onCloseRef = useRef(onClose);
+  const key = useId();
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     openRef.current = open;
@@ -19,6 +25,24 @@ export function Sheet({ open, onClose, title, eyebrow, children, hideClose }: { 
     if (open && !d.open) d.showModal();
     if (!open && d.open) d.close();
   }, [open]);
+
+  // The phone's Back closes the drawer rather than leaving the screen: opening adds a history
+  // step (same address); Back pops it and closes; closing any other way steps back over it.
+  // A drawer opened at its own address (/journal/new) already has that step: no extra one.
+  useEffect(() => {
+    if (!open || !backCloses) return;
+    window.history.pushState({ ...(window.history.state ?? {}), uchiSheet: key }, "");
+    let popped = false;
+    const onPop = () => {
+      popped = true;
+      if (openRef.current) onCloseRef.current();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (!popped && window.history.state?.uchiSheet === key) window.history.back();
+    };
+  }, [open, key, backCloses]);
 
   return (
     <dialog
