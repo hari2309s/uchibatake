@@ -34,13 +34,16 @@ function goodFor(space: Space, md: string, place: Place, region: Region | null):
 /** The ink-line plan seen from above (01): house wall thick, railing double, pots as drawn. Tap a pot. */
 function InkPlan({ space }: { space: Space }) {
   const plantings = usePlantings(space.id);
-  if (!space.plan.length || !plantings) return null;
+  // Only what's growing has a pot on the plan; with none (all ended, lost or removed), no empty drawing.
+  const growing = (plantings ?? []).filter((p) => p.status === "growing");
+  const pots = space.plan.filter((pos) => growing.some((p) => p.id === pos.planting_id));
+  if (!pots.length || !plantings) return null;
   return (
     <Section title="From above" aside="Tap a pot" className="pt-[30px]" i={2}>
       <div className="relative mt-3 h-[230px] border-x-[1.5px] border-t-[5px] border-ink" style={{ borderBottom: "4px double var(--ink)" }}>
         <span aria-hidden className="absolute inset-0" style={{ background: "repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 16%, transparent) 0 1.5px, transparent 1.5px 8px)", clipPath: "polygon(0 30%, 62% 100%, 0 100%)" }} />
-        {space.plan.map((pos) => {
-          const p = plantings.find((x) => x.id === pos.planting_id);
+        {pots.map((pos) => {
+          const p = growing.find((x) => x.id === pos.planting_id);
           if (!p) return null;
           return (
             <Link
