@@ -71,6 +71,7 @@ export function Profile() {
         <Row i={3} label="Family" value={`${members.length} of us`} href="/family" />
         <Row i={4} label="Reminders" href="/reminders" value={settings?.dailyRound ? `Once a day, ${settings.dailyRound}` : "Off"} />
         <Row i={5} label="Seed box" href="/journal/seeds" />
+        <Row i={5} label="Grow all year" href="/grow" value="Shelter and warm spots" />
         <Row i={6} label="Location" value={household.area ? "On · for weather and seasons" : "Not set"} />
         <Row i={7} label="Units">
           <Segmented label="Units" value={settings?.units ?? "C"} onChange={(units) => void setSettings(db, { units })} options={[{ value: "C", label: "°C" }, { value: "F", label: "°F" }]} />

@@ -1,6 +1,6 @@
 import type { Table } from "dexie";
 import { getMeta, setMeta, type FieldDB } from "./db";
-import { DEFAULT_SETTINGS, type Harvest, type JournalEntry, type New, type Notice, type Planting, type Row, type Seed, type Settings, type Space, type Task } from "./types";
+import { DEFAULT_SETTINGS, type Harvest, type JournalEntry, type New, type Notice, type Planting, type Reading, type Row, type Seed, type Settings, type Space, type Task } from "./types";
 
 /**
  * Every local write goes through here, so each change is stamped
@@ -163,6 +163,11 @@ export async function addJournalEntry(db: FieldDB, entry: New<JournalEntry>) {
 
 export async function addSeed(db: FieldDB, seed: New<Seed>) {
   return create(db.seeds, seed, await householdId(db));
+}
+
+/** A min/max reading for a space (MC04a, MC07a "Add a reading"). */
+export async function addReading(db: FieldDB, reading: New<Reading>) {
+  return create(db.readings, reading, await householdId(db));
 }
 
 /** Ticks one job on a notice's checklist (or unticks it). */

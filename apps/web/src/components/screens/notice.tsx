@@ -5,10 +5,12 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useRouter } from "next/navigation";
 import { FullNotice } from "@/components/ui/notice";
 import { useMembers, useSettings } from "@/lib/data/hooks";
-import { deg } from "@/lib/forecast";
+import { deg, toUnits } from "@/lib/forecast";
+import { warmerBy } from "@/lib/microclimate";
+import { protectionById } from "@uchibatake/content";
 import { meOf } from "@/lib/data/me";
 import { useData } from "@/lib/data/provider";
-import { create, toggleNoticeItem, update } from "@/lib/data/repo";
+import { create, live, toggleNoticeItem, update } from "@/lib/data/repo";
 import { useToday } from "@/lib/use-today";
 import { capitalise, numberWord } from "@/lib/words";
 import { Redirect } from "@/components/app/redirect";
@@ -25,12 +27,28 @@ export function NoticeView({ id }: { id: string }) {
     return n && !n.deleted_at ? n : null;
   }, [db, id]);
   const me = meOf(members, session)?.id ?? null;
+  // MC08a: the family's own readings refine the forecast ("Your cold frame keeps about 4° of that off").
+  const shelterLine = useLiveQuery(async () => {
+    const spaces = (await live(db.spaces)).filter((s) => s.shelter?.protections.length);
+    const readings = await live(db.readings);
+    for (const s of spaces) {
+      const rs = readings.filter((r) => r.space_id === s.id).sort((a, b) => b.on.localeCompare(a.on));
+      const warm = warmerBy(rs);
+      if (warm === null || warm <= 0) continue;
+      const what = protectionById(s.shelter!.protections[0])?.name.toLowerCase() ?? "shelter";
+      const by = rs.find((r) => r.by)?.by;
+      return { what, warm, by };
+    }
+    return null;
+  }, [db]);
   // Opened from a link with no app history behind it: go Home rather than out of the app.
   const leave = () => (window.history.length > 1 ? router.back() : router.replace("/"));
   if (notice === null) return <Redirect to="/" />;
   if (!notice) return <PageLoader />;
   const title = notice.kind === "frost" ? "Frost tonight" : notice.kind === "heat" ? "Hot today" : "Heavy rain tonight";
-  const body = notice.kind === "frost" && notice.low !== null ? `Down to ${deg(notice.low, settings?.units)} in the night.` : "";
+  const who = shelterLine?.by ? members?.find((m) => m.id === shelterLine.by)?.name : undefined;
+  const refine = notice.kind === "frost" && shelterLine ? ` From the forecast. Your ${shelterLine.what} keeps about ${Math.abs(toUnits(shelterLine.warm, settings?.units) - toUnits(0, settings?.units))}° of that off, from ${who ? `${who}'s` : "your"} readings.` : "";
+  const body = notice.kind === "frost" && notice.low !== null ? `Down to ${deg(notice.low, settings?.units)} in the night.${refine}` : "";
   return (
     <FullNotice
       kind={notice.kind}

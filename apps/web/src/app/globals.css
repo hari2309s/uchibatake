@@ -247,6 +247,23 @@ dialog[open] {
   animation: navink 2.4s cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
+/* ── Month band (MC01, MC06): cells draw January to December; new months soak in. ── */
+@keyframes band-draw {
+  from { transform: scaleX(0); opacity: 0.3; }
+  to { transform: none; opacity: 1; }
+}
+.band-cell {
+  transform-origin: left;
+  animation: band-draw 520ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes band-soak {
+  from { opacity: 0; filter: blur(3px); }
+  to { opacity: 1; filter: none; }
+}
+.band-new {
+  animation: band-soak 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
 /* ── The growing year (08) ──────────────────────────────────────────────── */
 /* A brush sweeps the year round, clockwise from the top (a mask over the band). */
 @keyframes yr-sweep {
@@ -379,6 +396,14 @@ html {
   @keyframes navink {
     from { transform: scaleX(0.6); opacity: 0.4; }
     to { transform: scaleX(0.6); opacity: 1; }
+  }
+  @keyframes band-draw {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes band-soak {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   @keyframes yr-sweep {
     from { stroke-dashoffset: 0; opacity: 0; }

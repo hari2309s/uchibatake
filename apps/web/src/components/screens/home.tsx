@@ -1,5 +1,6 @@
 "use client";
 
+import { MonthsCard } from "./grow";
 import { PageLoader } from "@/components/ui/page-loader";
 import { regionOf } from "@uchibatake/content";
 import { placeOf } from "@/lib/place-climate";
@@ -119,6 +120,7 @@ export function Home() {
         </Section>
       )}
 
+      <MonthsCard />
       {table ? (
         <section aria-label="For the table this week" className="rise px-8 pt-11" style={{ "--i": 5 } as React.CSSProperties}>
           <Link href={`/recipes/${table.id}`} className="tap flex flex-col gap-3.5">

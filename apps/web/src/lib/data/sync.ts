@@ -18,7 +18,7 @@ import type { Role, Row } from "./types";
  */
 
 /** Tables that are shared. Photos never leave the phone. */
-export const SHARED_TABLES = ["households", "members", "spaces", "plantings", "tasks", "harvests", "journal_entries", "seeds", "reminders", "notices"] as const satisfies readonly SyncedTable[];
+export const SHARED_TABLES = ["households", "members", "spaces", "plantings", "tasks", "harvests", "journal_entries", "seeds", "reminders", "notices", "readings"] as const satisfies readonly SyncedTable[];
 export type SharedTable = (typeof SHARED_TABLES)[number];
 
 /**
@@ -26,7 +26,7 @@ export type SharedTable = (typeof SHARED_TABLES)[number];
  * plants, because ticking "Sow peas" or logging the last picking moves a plant
  * on. Owners and editors: everything.
  */
-const HELPER_TABLES: readonly SharedTable[] = ["tasks", "harvests", "journal_entries", "notices", "reminders", "plantings"];
+const HELPER_TABLES: readonly SharedTable[] = ["tasks", "harvests", "journal_entries", "notices", "reminders", "plantings", "readings"];
 export const canWrite = (role: Role, t: SharedTable) => role !== "helper" || HELPER_TABLES.includes(t);
 
 /** This phone's share, kept in meta. */

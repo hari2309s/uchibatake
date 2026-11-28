@@ -5,7 +5,7 @@ import { getSettings, live } from "./repo";
 import { tasksForDay } from "./queries";
 import { useData } from "./provider";
 import type { FieldDB } from "./db";
-import type { Harvest, Household, JournalEntry, Member, Planting, Reminder, Seed, Settings, Space, Task } from "./types";
+import type { Harvest, Household, JournalEntry, Member, Planting, Reading, Reminder, Seed, Settings, Space, Task } from "./types";
 
 /**
  * useLiveQuery that starts from the last result for the same query on this
@@ -104,6 +104,12 @@ export function useJournal(): JournalEntry[] | undefined {
 export function useSeeds(): Seed[] | undefined {
   const { db } = useData();
   return useCached(db, "seeds", async () => (await live(db.seeds)).sort((a, b) => a.name.localeCompare(b.name)), [db]);
+}
+
+/** A space's readings, newest first. */
+export function useReadings(spaceId: string): Reading[] | undefined {
+  const { db } = useData();
+  return useCached(db, `readings:${spaceId}`, async () => (await db.readings.where("space_id").equals(spaceId).toArray()).filter((r) => !r.deleted_at).sort((a, b) => b.on.localeCompare(a.on) || b.updated_at - a.updated_at), [db, spaceId]);
 }
 
 export function useReminders(): Reminder[] | undefined {

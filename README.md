@@ -75,6 +75,11 @@ on your phone; nothing needs an account to work.
 - **For the table** — 30 family recipes (Dutch, Japanese, Korean, American and more), so nearly every crop
   reaches the table: what's ready now, what's ready soon, dishes from where you live first, what children can
   help with, and notes for vegetarian, vegan and gluten-free families.
+- **Grow all year** — shelter for a space (cold frame, cloche, fleece, polytunnel…), each with its sourced effect
+  (RHS: cloches about 3–4 weeks longer at each end; fleece about 2 weeks earlier and 2° of frost; winter salads
+  under cover where winters are UK-mild) or an honest "we don't know yet"; typed min/max readings ("about 4°
+  warmer than outside"); your year outside and sheltered; what you could eat each month; winter-salad sowings
+  every three weeks; frost notices and daily jobs for the shelter (air it, close it, read the thermometer).
 - **Install and offline** — add it to your home screen; visited pages work offline; a quiet "new version" strip.
 - **Notes** — a daily note and frost warnings, only after you allow them, never in quiet hours.
 - **Settings** — units, season lead, notes, privacy, "Export my field" (a ZIP of field.json and photos) and delete.

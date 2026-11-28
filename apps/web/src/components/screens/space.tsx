@@ -1,5 +1,6 @@
 "use client";
 
+import { ShelterBlock } from "./grow";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageLoader } from "@/components/ui/page-loader";
 import { byRegion, regionOf, type Place, type Region } from "@uchibatake/content";
@@ -113,6 +114,7 @@ export function SpaceDetail({ id }: { id: string }) {
           ))}
         </div>
       ) : null}
+      <ShelterBlock space={space} />
       <InkPlan space={space} />
       {growing.length ? (
         <Section title="Growing here" i={3} className="pt-[34px]">

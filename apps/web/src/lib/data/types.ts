@@ -1,4 +1,4 @@
-import type { ClimateType, GrowClimate, SeasonTable } from "@uchibatake/content";
+import type { ClimateType, GrowClimate, ProtectionId, SeasonTable } from "@uchibatake/content";
 
 /*
  * Rows in the on-device database. Every synced row carries the same
@@ -100,6 +100,10 @@ export interface Space extends Row {
     ph?: number | null;
   } | null;
   greenhouse: { heated: "no" | "frost" | "warm"; vents: ("roof" | "side")[] } | null;
+  /** Microclimate (MC03): the protections the family has or made, and a warm wall behind it. */
+  shelter?: { protections: ProtectionId[]; warm_wall: boolean } | null;
+  /** Indoors (MC05): how cold the room gets at night, as the family told us (°C). */
+  night_low?: number | null;
   sort: number;
 }
 
@@ -229,3 +233,20 @@ export const DEFAULT_SETTINGS: Settings = {
   dailyRound: "08:00",
   frostWarnings: true,
 };
+
+/**
+ * A temperature reading for a space (MC04a, MC07a): a min/max thermometer
+ * read and typed in, or (later) a sensor. °C; with the outside low then, from
+ * the forecast, for "4° warmer than outside".
+ */
+export interface Reading extends Row {
+  space_id: string;
+  /** "YYYY-MM-DD": the night it covers (the morning it was read). */
+  on: string;
+  low: number | null;
+  high: number | null;
+  outside_low: number | null;
+  /** Who read it (a member), or null. */
+  by: string | null;
+  source: "typed" | "sensor";
+}

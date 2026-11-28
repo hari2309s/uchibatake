@@ -1,5 +1,5 @@
 import Dexie, { type Table } from "dexie";
-import type { Harvest, Household, JournalEntry, Member, Notice, Photo, Planting, Reminder, Seed, Space, Task } from "./types";
+import type { Harvest, Household, JournalEntry, Member, Notice, Photo, Planting, Reading, Reminder, Seed, Space, Task } from "./types";
 
 /** Device-only key/value rows (settings, caches, onboarding progress). Never synced. */
 export interface MetaRow {
@@ -19,6 +19,7 @@ export const SYNCED_TABLES = [
   "reminders",
   "notices",
   "photos",
+  "readings",
 ] as const;
 export type SyncedTable = (typeof SYNCED_TABLES)[number];
 
@@ -34,6 +35,7 @@ export class FieldDB extends Dexie {
   reminders!: Table<Reminder, string>;
   notices!: Table<Notice, string>;
   photos!: Table<Photo, string>;
+  readings!: Table<Reading, string>;
   meta!: Table<MetaRow, string>;
 
   constructor(name: string, options?: ConstructorParameters<typeof Dexie>[1]) {
@@ -53,6 +55,8 @@ export class FieldDB extends Dexie {
       photos: "id, owner_id, dirty",
       meta: "key",
     });
+    // v2: thermometer (and later sensor) readings per space (microclimates).
+    this.version(2).stores({ readings: "id, space_id, on, dirty" });
   }
 }
 

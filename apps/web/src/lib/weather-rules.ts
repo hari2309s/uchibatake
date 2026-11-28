@@ -1,4 +1,4 @@
-import { cropById } from "@uchibatake/content";
+import { cropById, type ProtectionId } from "@uchibatake/content";
 import type { FieldDB } from "./data/db";
 import { addTask, create, live, update } from "./data/repo";
 import type { Notice, Planting, Space } from "./data/types";
@@ -67,15 +67,25 @@ export function noticeJobs(kind: Notice["kind"], plantings: Planting[], spaces: 
   const outside = growing.filter((p) => OUTDOOR(where(p)));
   const hasBalcony = outside.some((p) => where(p)?.type === "balcony");
   const greenhouse = spaces.some((s) => s.type === "greenhouse" && growing.some((p) => p.space_id === s.id));
+  // Microclimates (MC08a): a space's own shelter comes first.
+  const sheltered = (id: ProtectionId) => spaces.filter((s) => s.shelter?.protections.includes(id) && growing.some((p) => p.space_id === s.id));
+  const coldFrames = sheltered("cold-frame");
+  const cloches = sheltered("cloche");
+  const fleeced = sheltered("fleece");
   const jobs: string[] = [];
   if (kind === "frost") {
+    // Tender plants first: that job matters most and must never be cut by the three-job limit.
     const soft = outside.filter((p) => tender(p.crop_id));
     if (soft.length) jobs.push(`Bring the ${listWords([...new Set(soft.map(nameOf))])} in, or against the house wall`);
+    if (coldFrames.length) jobs.push(coldFrames.length === 1 ? "Close the cold frame lid" : "Close the cold frame lids");
+    if (cloches.length) jobs.push("Check the cloches are on and weighted down");
+    if (fleeced.length) jobs.push(`Lay fleece over the plants in the ${listWords(fleeced.map((s) => s.name.toLowerCase()))}`);
     const young = outside.filter((p) => !tender(p.crop_id) && Date.now() - parseIsoDate(p.started_on).getTime() < 42 * 86_400_000);
     if (young.length) jobs.push(`Fleece over the young ${listWords([...new Set(young.map(nameOf))])}`);
     if (hasBalcony) jobs.push("Move the balcony pots against the wall");
     if (greenhouse) jobs.push("Close the greenhouse vents before dark");
   } else if (kind === "heat") {
+    if (coldFrames.length) jobs.push(coldFrames.length === 1 ? "Open the cold frame lid" : "Open the cold frame lids");
     if (outside.length) jobs.push("Water deeply early tomorrow, not in the heat of the day");
     if (hasBalcony) jobs.push("Move the pots out of the afternoon sun");
     if (greenhouse) jobs.push("Open the greenhouse vents wide");
@@ -157,11 +167,47 @@ export async function applyForecast(db: FieldDB, f: Forecast, householdId: strin
       rule_key: `weather:fleece:${today}`,
     });
   }
+  await shelterRhythm(db, f, spaces, plantings, today, units, r.frostTonight);
   if (r.rainedToday) {
     for (const t of await live(db.tasks)) {
       if (t.done_at || t.skipped_at || t.due_on > today || !/^water/i.test(t.title)) continue;
       if (!OUTDOOR(spaces.find((s) => s.id === t.space_id))) continue;
       await update(db.tasks, t.id, { skipped_at: Date.now(), why: "It rained today. The rain has it." });
     }
+  }
+}
+
+/**
+ * MC09: daily rhythm jobs for sheltered spaces, from the forecast.
+ * - Air it on a mild, sunny day (RHS: ventilate "on mild and sunny days" so damp can't settle).
+ * - Close it before dark on a near-frost night (2° or lower; a frost night has its notice instead).
+ * - Read the thermometer, where the family keeps readings (a child's job if there's a child).
+ */
+async function shelterRhythm(db: FieldDB, f: Forecast, spaces: Space[], plantings: Planting[], today: string, units: "C" | "F" | undefined, frostTonight: boolean) {
+  const growingIn = (s: Space) => plantings.some((p) => p.status === "growing" && p.space_id === s.id);
+  const lidded = spaces.filter((s) => (s.shelter?.protections.includes("cold-frame") || s.shelter?.protections.includes("cloche")) && growingIn(s));
+  const day = f.days[0];
+  const tonight = f.days[1]?.lo ?? day?.lo;
+  const base = { how: null, space_id: null, planting_ids: [], due_time: null, assignee_id: null, done_at: null, done_by: null, snoozed_until: null, skipped_at: null, source: "weather" as const };
+  for (const s of lidded) {
+    const what = s.shelter!.protections.includes("cold-frame") ? "cold frame" : "cloches";
+    const lid = what === "cold frame" ? "Prop the lid open" : "Lift one side";
+    if (day && day.hi >= 10 && day.rainChance < 50 && !frostTonight) {
+      await addTask(db, { ...base, title: `Air the ${what}`, detail: `A mild day. ${lid} until mid-afternoon.`, why: "On mild, sunny days a little air keeps damp and mould away.", space_id: s.id, due_on: today, slot: "morning", rule_key: `shelter:air:${s.id}:${today}` });
+    }
+    if (typeof tonight === "number" && tonight <= 2 && tonight > 0) {
+      await addTask(db, { ...base, title: `Close the ${what}`, detail: `It drops to ${deg(tonight, units)} tonight.`, why: "Shelter keeps a little of the day's warmth in overnight.", space_id: s.id, due_on: today, slot: "evening", rule_key: `shelter:close:${s.id}:${today}` });
+    }
+  }
+  // The thermometer: where readings were kept in the last two weeks.
+  const since = new Date(parseIsoDate(today).getTime() - 14 * 86_400_000).toISOString().slice(0, 10);
+  const recent = (await live(db.readings)).filter((x) => x.on >= since && x.source === "typed");
+  const members = await live(db.members);
+  const child = members.filter((m) => m.kind === "child").sort((a, b) => (a.age ?? 99) - (b.age ?? 99))[0];
+  for (const sid of [...new Set(recent.map((x) => x.space_id))]) {
+    const s = spaces.find((x) => x.id === sid);
+    // Already read today: no job.
+    if (!s || recent.some((x) => x.space_id === sid && x.on === today)) continue;
+    await addTask(db, { ...base, title: child ? `${child.name} reads the ${s.name.toLowerCase()} thermometer` : `Read the ${s.name.toLowerCase()} thermometer`, detail: child ? "Read the low number to a grown-up." : "The coldest since you last reset it.", why: "A reading now and then shows how much warmer your shelter keeps.", space_id: s.id, assignee_id: child?.id ?? null, due_on: today, slot: "morning", rule_key: `shelter:thermo:${s.id}:${today}` });
   }
 }

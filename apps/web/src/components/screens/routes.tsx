@@ -1,5 +1,6 @@
 "use client";
 
+import { GrowAllYear, ShelteredYear, WinterSalads } from "./grow";
 import { use } from "react";
 import { JournalEntryView } from "./journal-entry";
 import { NoticeView } from "./notice";
@@ -50,3 +51,6 @@ export const SeasonEndRoute = ({ params }: P) => <SeasonEnd id={useIdParam(param
 export const FeedRoute = ({ params }: P) => <FeedRack id={useIdParam(params)} />;
 export const CheckRoute = ({ params }: P) => <CheckPlant id={useIdParam(params)} />;
 export const RecipeRoute = ({ params }: P) => <RecipeView id={useIdParam(params)} />;
+export const GrowSpaceRoute = ({ params }: P) => <GrowAllYear spaceId={useIdParam(params)} />;
+export const ShelteredRoute = ({ params }: P) => <ShelteredYear spaceId={useIdParam(params)} />;
+export const WinterSaladsRoute = ({ params }: P) => <WinterSalads spaceId={useIdParam(params)} />;
