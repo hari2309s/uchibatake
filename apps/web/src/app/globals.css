@@ -247,6 +247,27 @@ dialog[open] {
   animation: navink 2.4s cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
+/* ── Header ──────────────────────────────────────────────────────────────── */
+/* The theme icon turns in when it changes. */
+@keyframes theme-turn {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+.theme-turn {
+  animation: theme-turn 420ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+/* A long place name: scrolls slowly, round and round, resting at the start; soft edges. */
+@keyframes marquee {
+  0%, 12% { transform: translateX(0); }
+  100% { transform: translateX(var(--shift)); }
+}
+.marquee-track {
+  animation: marquee var(--dur) linear infinite;
+}
+.marquee-box {
+  mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 18px), transparent 100%);
+}
+
 /* ── Month band (MC01, MC06): cells draw January to December; new months soak in. ── */
 @keyframes band-draw {
   from { transform: scaleX(0); opacity: 0.3; }
@@ -396,6 +417,23 @@ html {
   @keyframes navink {
     from { transform: scaleX(0.6); opacity: 0.4; }
     to { transform: scaleX(0.6); opacity: 1; }
+  }
+  @keyframes theme-turn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  /* No scrolling: the name ends in "…" instead. */
+  .marquee-track {
+    animation: none;
+    width: 100%;
+  }
+  .marquee-track > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .marquee-track > span:last-child {
+    display: none;
   }
   @keyframes band-draw {
     from { opacity: 0; }
